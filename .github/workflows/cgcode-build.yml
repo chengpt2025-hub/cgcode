@@ -21,7 +21,7 @@ jobs:
     name: 导入上游源码（仅首次）
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: 导入
         if: github.ref == 'refs/heads/main'
         run: |
@@ -46,7 +46,7 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 330
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.ref_name }}
 
