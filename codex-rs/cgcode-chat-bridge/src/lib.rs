@@ -170,21 +170,69 @@ fn should_fail_over(status: Option<StatusCode>) -> bool {
     }
 }
 
-async fn handle_models(State(st): State<Arc<AppState>>) -> Response {
-    let up = &st.cfg.upstreams[0];
-    let rb = apply_auth(st.client.get(join_url(&up.base_url, "models")), up);
-    match rb.send().await {
-        Ok(resp) => {
-            let status = StatusCode::from_u16(resp.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
-            let body = resp.bytes().await.unwrap_or_default();
-            Response::builder()
-                .status(status)
-                .header(CONTENT_TYPE, "application/json")
-                .body(Body::from(body))
-                .unwrap_or_else(|_| Response::new(Body::empty()))
-        }
-        Err(err) => error_response(StatusCode::BAD_GATEWAY, &format!("无法连接到模型接口：{err}")),
+/// Codex 期望的模型目录格式与 OpenAI 的 /models 不同，这里明确返回 404，
+/// 让 Codex 使用内置的模型信息，而不是解析失败。
+async fn handle_models(State(_st): State<Arc<AppState>>) -> Response {
+    error_response(StatusCode::NOT_FOUND, "cgcode 适配层不提供模型目录")
+}
+
+/// 首次启动向导用：探测用户填写的接口是 Chat Completions 还是 Responses，
+/// 并确认 Key 和模型名可用。返回规范化后的 base_url 和接口类型。
+pub async fn probe(base_url: &str, api_key: &str, model: &str) -> Result<(String, UpstreamMode), String> {
+    let client = reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(15))
+        .timeout(Duration::from_secs(90))
+        .build()
+        .map_err(|e| format!("无法创建网络客户端：{e}"))?;
+    let base = base_url.trim().trim_end_matches('/').to_owned();
+    if !(base.starts_with("http://") || base.starts_with("https://")) {
+        return Err("接口地址需要以 http:// 或 https:// 开头".into());
     }
+    let mut candidates = vec![base.clone()];
+    if !base.ends_with("/v1") {
+        candidates.push(format!("{base}/v1"));
+    }
+    let mut last_error = String::from("接口没有响应");
+    for candidate in candidates {
+        let auth = |rb: reqwest::RequestBuilder| if api_key.is_empty() { rb } else { rb.bearer_auth(api_key) };
+        let chat = auth(client.post(join_url(&candidate, "chat/completions")))
+            .json(&json!({
+                "model": model,
+                "messages": [{"role": "user", "content": "回复“好”"}],
+                "max_tokens": 16,
+                "stream": false
+            }))
+            .send()
+            .await;
+        match chat {
+            Ok(resp) if resp.status().is_success() => return Ok((candidate, UpstreamMode::ChatCompletions)),
+            Ok(resp) => {
+                let status = StatusCode::from_u16(resp.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
+                let text = resp.text().await.unwrap_or_default();
+                if matches!(status.as_u16(), 401 | 403) {
+                    return Err(upstream_error_message(status, &text));
+                }
+                last_error = upstream_error_message(status, &text);
+            }
+            Err(err) => last_error = format!("无法连接到 {candidate}：{err}"),
+        }
+        let responses = auth(client.post(join_url(&candidate, "responses")))
+            .json(&json!({"model": model, "input": "回复“好”", "max_output_tokens": 16}))
+            .send()
+            .await;
+        match responses {
+            Ok(resp) if resp.status().is_success() => return Ok((candidate, UpstreamMode::Responses)),
+            Ok(resp) => {
+                let status = StatusCode::from_u16(resp.status().as_u16()).unwrap_or(StatusCode::BAD_GATEWAY);
+                if !matches!(status.as_u16(), 404 | 405) {
+                    let text = resp.text().await.unwrap_or_default();
+                    last_error = upstream_error_message(status, &text);
+                }
+            }
+            Err(_) => {}
+        }
+    }
+    Err(last_error)
 }
 
 async fn handle_responses(State(st): State<Arc<AppState>>, body: Bytes) -> Response {

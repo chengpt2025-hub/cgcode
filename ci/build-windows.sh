@@ -45,9 +45,36 @@ export STABLE_GIT_COMMIT="$(git rev-parse HEAD)"
 cd "$ROOT/codex-rs"
 rustup show active-toolchain || rustup toolchain install
 rustup target add "$TARGET"
-cargo build --release --target "$TARGET" --bin codex
+BINS="codex codex-windows-sandbox-setup codex-command-runner codex-code-mode-host codex-exec-server"
+args=()
+for b in $BINS; do args+=(--bin "$b"); done
+cargo build --release --target "$TARGET" "${args[@]}"
 
-# 3. 打包
-mkdir -p "$ROOT/dist"
-cp "target/$TARGET/release/codex.exe" "$ROOT/dist/cgcode.exe"
-echo "== 构建完成：dist/cgcode.exe =="
+# 3. 打包：cgcode.exe 加上 Windows 下运行命令沙箱需要的配套程序
+REL="target/$TARGET/release"
+PKG="$ROOT/dist/cgcode-windows-x64"
+rm -rf "$ROOT/dist"
+mkdir -p "$PKG"
+cp "$REL/codex.exe" "$PKG/cgcode.exe"
+for b in $BINS; do
+  [ "$b" = "codex" ] && continue
+  if [ -f "$REL/$b.exe" ]; then cp "$REL/$b.exe" "$PKG/"; else echo "提示：未找到 $b.exe"; fi
+done
+cp "$ROOT/LICENSE" "$PKG/" 2>/dev/null || true
+cp "$ROOT/NOTICE" "$PKG/" 2>/dev/null || true
+cat > "$PKG/使用说明.txt" <<'EOF'
+cgcode 使用说明
+
+1. 把整个文件夹放到一个固定位置，例如 C:\cgcode
+2. 打开“终端”或 PowerShell，进入你的项目目录，运行：
+     C:\cgcode\cgcode.exe
+   （也可以把 C:\cgcode 加入系统 PATH，之后直接输入 cgcode）
+3. 第一次运行会进入中文配置向导，填写接口地址、API Key、模型名即可。
+4. 重新配置模型接口：cgcode setup
+5. 配置文件位置：%USERPROFILE%\.cgcode\cgcode.toml
+EOF
+cp "$REL/codex.exe" "$ROOT/dist/cgcode.exe"
+(cd "$ROOT/dist" && powershell -NoProfile -Command "Compress-Archive -Path 'cgcode-windows-x64' -DestinationPath 'cgcode-windows-x64.zip' -Force")
+rm -rf "$PKG"
+ls -la "$ROOT/dist"
+echo "== 构建完成 =="

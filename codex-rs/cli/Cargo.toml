@@ -30,6 +30,7 @@ workspace = true
 base64 = { workspace = true }
 codex-utils-process = { workspace = true }
 anyhow = { workspace = true }
+cgcode-chat-bridge = { workspace = true }
 chrono = { workspace = true }
 clap = { workspace = true, features = ["derive", "env"] }
 clap_complete = { workspace = true }

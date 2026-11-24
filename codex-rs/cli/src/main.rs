@@ -54,6 +54,7 @@ static ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod app_cmd;
+mod cgcode;
 mod app_server_proxy;
 mod config_override_args;
 mod daemon_install;
@@ -1045,6 +1046,7 @@ fn stage_str(stage: Stage) -> &'static str {
 
 fn main() -> anyhow::Result<()> {
     codex_build_info::initialize!();
+    cgcode::init_home();
     let remote_control_disabled = codex_app_server::take_remote_control_disabled_env();
     arg0_dispatch_or_else(move |arg0_paths: Arg0DispatchPaths| async move {
         #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -1070,6 +1072,11 @@ async fn dispatch_cli(
     arg0_paths: Arg0DispatchPaths,
     remote_control_disabled: bool,
 ) -> anyhow::Result<Option<impl Future<Output = anyhow::Result<()>>>> {
+    // cgcode：`cgcode setup` 重新运行中文配置向导。
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("setup")) {
+        cgcode::run_setup().await?;
+        return Ok(None);
+    }
     let MultitoolCli {
         config_overrides: mut root_config_overrides,
         feature_toggles,
@@ -1090,6 +1097,8 @@ async fn dispatch_cli(
     // Fold --enable/--disable into config overrides so they flow to all subcommands.
     let toggle_overrides = feature_toggles.to_overrides()?;
     root_config_overrides.raw_overrides.extend(toggle_overrides);
+    // cgcode：读取模型接口配置，启动本地适配层并指向它（首次运行时进入配置向导）。
+    cgcode::prepare(subcommand.is_none(), &mut root_config_overrides).await?;
     let agents_options = match &subcommand {
         Some(Subcommand::Agents(options)) => Some(options),
         _ => None,
