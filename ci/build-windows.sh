@@ -35,6 +35,11 @@ while IFS= read -r line; do
 done < "$ENV_FILE"
 
 # 2. 编译
+# Windows 默认路径长度上限 260，rusty_v8 的子模块里有超长路径，需要开启长路径并缩短 CARGO_HOME
+git config --global core.longpaths true
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+export CARGO_HOME="C:/cg"
+mkdir -p "$CARGO_HOME"
 export LIBSQLITE3_FLAGS=SQLITE_DISABLE_INTRINSIC
 export STABLE_GIT_COMMIT="$(git rev-parse HEAD)"
 cd "$ROOT/codex-rs"
