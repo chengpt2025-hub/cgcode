@@ -1,0 +1,126 @@
+name: cgcode 构建
+
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: cgcode-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_SHA: ae21235afbd5ba6556c2ab4b64f6afc96a139ef8
+
+jobs:
+  import:
+    name: 导入上游源码（仅首次）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 导入
+        if: github.ref == 'refs/heads/main'
+        run: |
+          set -euo pipefail
+          if [ -f codex-rs/Cargo.toml ]; then
+            echo "上游源码已存在，跳过"
+            exit 0
+          fi
+          git clone https://github.com/openai/codex.git /tmp/upstream
+          git -C /tmp/upstream checkout "$UPSTREAM_SHA"
+          rm -rf /tmp/upstream/.git /tmp/upstream/.github/workflows
+          rsync -a --ignore-existing /tmp/upstream/ ./
+          git config user.name "cgcode-bot"
+          git config user.email "cgcode-bot@users.noreply.github.com"
+          git add -A
+          git commit -q -m "导入 OpenAI Codex 上游源码 (${UPSTREAM_SHA:0:7})"
+          git push origin HEAD:main
+
+  build-windows:
+    name: 编译 Windows 版
+    needs: import
+    runs-on: windows-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: 检查是否可以编译
+        id: check
+        shell: bash
+        run: |
+          if [ -f ci/build-windows.sh ] && [ -f codex-rs/Cargo.toml ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+            echo "缺少构建脚本或源码，跳过编译"
+          fi
+
+      - uses: Swatinem/rust-cache@v2
+        if: steps.check.outputs.run == 'true'
+        with:
+          workspaces: codex-rs
+
+      - name: 编译
+        if: steps.check.outputs.run == 'true'
+        shell: bash
+        run: bash ci/build-windows.sh
+
+      - name: 上传构建产物
+        if: steps.check.outputs.run == 'true' && success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cgcode-windows-x64
+          path: dist/*
+
+      - name: 发布到 Releases
+        id: release
+        if: steps.check.outputs.run == 'true' && success() && github.ref == 'refs/heads/main'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="build-$(date -u +%Y%m%d-%H%M)-${GITHUB_SHA:0:7}"
+          gh release create "$tag" dist/* --title "cgcode ${tag}" --notes "自动构建，提交 ${GITHUB_SHA}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: 报告成功
+        if: steps.check.outputs.run == 'true' && success()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "分支：${GITHUB_REF_NAME}"
+            echo "提交：${GITHUB_SHA}"
+            echo "运行记录：${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "发布：${{ steps.release.outputs.tag }}"
+            echo
+            echo '```'
+            tail -c 20000 build.log 2>/dev/null || echo "无日志"
+            echo '```'
+          } > body.md
+          gh issue create --title "构建成功 ${GITHUB_REF_NAME} ${GITHUB_SHA:0:7}" --body-file body.md
+
+      - name: 报告失败
+        if: failure()
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "分支：${GITHUB_REF_NAME}"
+            echo "提交：${GITHUB_SHA}"
+            echo "运行记录：${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo
+            echo '```'
+            tail -c 60000 build.log 2>/dev/null || echo "无日志"
+            echo '```'
+          } > body.md
+          gh issue create --title "构建失败 ${GITHUB_REF_NAME} ${GITHUB_SHA:0:7}" --body-file body.md
