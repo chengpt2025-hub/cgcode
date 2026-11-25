@@ -132,9 +132,9 @@ impl WidgetRef for &WelcomeWidget {
         let mut lines: Vec<Line> = vec![Line::default(); usize::from(logo_rows)];
         lines.push(Line::from(vec![
             "  ".into(),
-            "Welcome to ".into(),
-            "Codex".bold(),
-            ", OpenAI's command-line coding agent".into(),
+            "欢迎使用 ".into(),
+            "cgcode".bold(),
+            "，你的命令行编程助手".into(),
         ]));
 
         Paragraph::new(lines)
