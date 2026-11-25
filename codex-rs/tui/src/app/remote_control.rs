@@ -365,7 +365,7 @@ fn mutation_error(operation: &str, err: codex_app_server_client::TypedRequestErr
         match source.message.as_str() {
             "remote control requires ChatGPT authentication"
             | "remote control requires ChatGPT authentication; API key auth is not supported" => {
-                return "Sign in with ChatGPT to manage remote control.".into();
+                return "当前接口不支持远程控制。".into();
             }
             "remote control is disabled by managed requirements" => {
                 return "Remote control is disabled by managed requirements.".into();

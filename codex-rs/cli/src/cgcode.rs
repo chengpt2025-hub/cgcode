@@ -309,6 +309,11 @@ pub async fn prepare(is_interactive: bool, overrides: &mut CliConfigOverrides) -
         (format!("model_providers.{PROVIDER_ID}.wire_api"), toml_str("responses")),
         (format!("model_providers.{PROVIDER_ID}.stream_idle_timeout_ms"), "600000".to_owned()),
         ("model_context_window".to_owned(), cfg.context_window.unwrap_or(128_000).to_string()),
+        // 不向 OpenAI 上报使用数据、不上传反馈、不检查官方更新。
+        ("analytics.enabled".to_owned(), "false".to_owned()),
+        ("feedback.enabled".to_owned(), "false".to_owned()),
+        ("check_for_update_on_startup".to_owned(), "false".to_owned()),
+        ("otel.metrics_exporter".to_owned(), toml_str("none")),
     ];
     // 放在最前面，用户在命令行里用 -c 指定的同名项可以覆盖这些默认值。
     let mut merged: Vec<String> = entries.into_iter().map(|(k, v)| format!("{k}={v}")).collect();
