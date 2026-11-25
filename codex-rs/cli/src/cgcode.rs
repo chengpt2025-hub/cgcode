@@ -149,6 +149,31 @@ fn save_config(cfg: &CgcodeConfig) -> anyhow::Result<()> {
 }
 
 /// 首次配置时写入全局 AGENTS.md，要求 cgcode 默认用简体中文交流。
+const BUILTIN_SKILLS: &[(&str, &str, &str)] = &[
+    ("cg-review", "中文代码审查：检查当前改动或指定文件的正确性、安全性、可维护性，按严重程度列出问题并给出修改建议。用户说“审查”“review”“帮我看看代码”时使用。", "# 代码审查\n\n1. 用 `git status` 和 `git diff`（含未跟踪文件）确定要审查的改动；用户指定了文件就只看这些文件。\n2. 逐个文件阅读改动，结合上下文理解意图。\n3. 按严重程度分组输出：\n   - 严重：会导致崩溃、数据丢失、安全漏洞、逻辑错误的问题\n   - 一般：边界情况、性能问题、错误处理缺失\n   - 建议：命名、可读性、重复代码\n4. 每条问题写明：文件和行号、问题描述、为什么是问题、建议怎么改。\n5. 最后给一句总体结论。只审查，不主动修改代码，除非用户要求。\n"),
+    ("cg-ship", "发布前检查：提交或发布前跑一遍格式化、编译、测试，检查遗留调试代码和敏感信息，最后生成中文提交说明。用户说“发布”“提交前检查”“ship”时使用。", "# 发布前检查\n\n1. 识别项目类型（Cargo.toml、package.json、pyproject.toml、go.mod 等），找到对应的格式化、静态检查、编译和测试命令。\n2. 依次运行：格式化 → 静态检查 → 编译 → 测试。失败就停下来说明原因并给出修复方案，征得同意后修复。\n3. 搜索改动中遗留的调试输出、TODO、注释掉的大段代码，以及疑似密钥、密码、token。\n4. 全部通过后，根据 `git diff` 写一段简体中文提交说明：第一行概括，后面分点列出改动。\n5. 询问用户是否执行 `git commit`，不要自行推送。\n"),
+    ("cg-focus", "焦点板：在项目根目录维护 .cgcode/FOCUS.md，记录当前目标、进行中、待办和已完成事项，帮助长任务不跑偏。用户说“焦点”“任务板”“我们做到哪了”或开始多步任务时使用。", "# 焦点板\n\n- 文件位置：项目根目录 `.cgcode/FOCUS.md`，不存在就创建。\n- 格式：\n  ```\n  # 当前目标\n  一句话说明\n  ## 进行中\n  - [ ] ...\n  ## 待办\n  - [ ] ...\n  ## 已完成\n  - [x] ...\n  ```\n- 开始多步任务时先写好目标和步骤；每完成一步就更新；用户问进度时读取并汇报。\n- 保持简短，已完成超过 20 条时把旧的合并成一行摘要。\n"),
+    ("cg-memory", "项目记忆：把项目的重要约定、决定和踩过的坑记到 .cgcode/MEMORY.md，下次开始工作时先读取。用户说“记住”“以后都这样”或出现值得记录的决定时使用。", "# 项目记忆\n\n- 文件位置：项目根目录 `.cgcode/MEMORY.md`。\n- 开始一个新任务前，如果文件存在，先读一遍。\n- 需要记录的内容：用户明确说要记住的事；技术选型和约定（如代码风格、目录结构、命令）；排查过的疑难问题及解决办法。\n- 每条一行，带日期，例如 `- 2026-11-25 测试命令用 npm run test:unit`。\n- 与已有记录冲突时更新旧条目，不要重复记录。\n"),
+    ("cg-git", "Git 助手：用简体中文解释仓库状态，处理分支、合并冲突、撤销改动、整理提交等操作，危险操作先确认。用户提到 git、分支、冲突、回退时使用。", "# Git 助手\n\n1. 先运行 `git status`、`git branch -vv`、`git log --oneline -10` 了解现状，并用中文简要说明。\n2. 常见操作给出具体命令并解释作用：新建/切换分支、合并、变基、暂存、撤销某个文件的改动、修改最近一次提交说明。\n3. 合并冲突：列出冲突文件，逐个说明双方改了什么，给出合并方案，用户同意后再改。\n4. 以下操作必须先征得用户确认：`reset --hard`、`push --force`、删除分支、`clean -fd`、改写已推送的历史。\n"),
+    ("cg-context", "上下文管理：对话很长或任务切换时，总结已完成的工作和关键信息，建议用 /compact 压缩或用 /new 开新对话。用户说“上下文”“太长了”“总结一下”时使用。", "# 上下文管理\n\n1. 用不超过 15 行的简体中文总结：目标、已完成、关键决定、修改过的文件、未解决的问题。\n2. 把总结同步写入 `.cgcode/FOCUS.md`（如果在用焦点板）。\n3. 建议下一步：同一任务继续就用 `/compact` 压缩对话；换新任务就用 `/new`，并把总结作为新对话的开头。\n"),
+];
+
+/// 预装 cgcode 插件包（以技能形式放在 `~/.cgcode/skills/` 下）；已存在的不覆盖。
+fn ensure_skills(dir: &std::path::Path) {
+    for (name, description, body) in BUILTIN_SKILLS {
+        let skill_dir = dir.join("skills").join(name);
+        let path = skill_dir.join("SKILL.md");
+        if path.exists() {
+            continue;
+        }
+        if std::fs::create_dir_all(&skill_dir).is_err() {
+            continue;
+        }
+        let text = format!("---\nname: {name}\ndescription: \"{description}\"\n---\n\n{body}");
+        let _ = std::fs::write(path, text);
+    }
+}
+
 fn ensure_agents_md(dir: &std::path::Path) {
     let path = dir.join("AGENTS.md");
     if path.exists() {
@@ -158,7 +183,9 @@ fn ensure_agents_md(dir: &std::path::Path) {
         - 始终使用简体中文与用户交流，包括计划、说明、总结和提问。\n\
         - 代码、命令、文件名和报错原文保持原样，不要翻译。\n\
         - 代码注释和提交说明默认使用简体中文，除非项目已有其他约定。\n\
-        - 动手修改前先说明要做什么；改完简要说明改了哪些文件、为什么改。\n";
+        - 动手修改前先说明要做什么；改完简要说明改了哪些文件、为什么改。\n\
+        - 预装技能：cg-review（代码审查）、cg-ship（发布前检查）、cg-focus（焦点板）、cg-memory（项目记忆）、cg-git（Git 助手）、cg-context（上下文管理），符合场景时主动使用。\n\
+        - 项目根目录有 .cgcode/MEMORY.md 时，开始工作前先读取。\n";
     let _ = std::fs::write(path, text);
 }
 
@@ -287,6 +314,7 @@ pub async fn prepare(is_interactive: bool, overrides: &mut CliConfigOverrides) -
             }
         }
     };
+    ensure_skills(&home_dir());
     if is_interactive {
         maybe_play_intro(&cfg).await;
     }
