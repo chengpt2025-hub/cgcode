@@ -99,7 +99,7 @@ impl StatusIndicatorWidget {
         effects: codex_config::types::TuiEffects,
     ) -> Self {
         Self {
-            header: String::from("Working"),
+            header: String::from("处理中"),
             header_started_at: Instant::now(),
             details: None,
             details_max_lines: STATUS_DETAILS_DEFAULT_MAX_LINES,
@@ -257,7 +257,7 @@ impl StatusIndicator<'_> {
         {
             spans.push(format!("({pretty_elapsed} • ").dim());
             spans.extend(interrupt_binding.spans());
-            spans.push(" to interrupt)".dim());
+            spans.push(" 中断）".dim());
         } else {
             spans.push(format!("({pretty_elapsed})").dim());
         }
@@ -342,7 +342,7 @@ mod tests {
         );
         let previous = Instant::now() - Duration::from_secs(/*secs*/ 1);
         row.header_started_at = previous;
-        row.update_header("Working".to_owned());
+        row.update_header("处理中".to_owned());
         assert_eq!(row.header_started_at, previous);
         row.update_header("Mapping the app structure".to_owned());
         assert!(row.header_started_at > previous);

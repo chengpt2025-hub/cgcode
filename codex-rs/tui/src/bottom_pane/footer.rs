@@ -136,14 +136,14 @@ impl CollaborationModeIndicator {
     fn label(self, show_cycle_hint: bool) -> String {
         let suffix = if show_cycle_hint {
             format!(
-                " ({} to cycle)",
+                " （{} 切换）",
                 key_hint::shift(KeyCode::Tab).display_label()
             )
         } else {
             String::new()
         };
         match self {
-            CollaborationModeIndicator::Plan => format!("Plan mode{suffix}"),
+            CollaborationModeIndicator::Plan => format!("规划模式{suffix}"),
         }
     }
 
@@ -152,7 +152,7 @@ impl CollaborationModeIndicator {
         if show_cycle_hint {
             line.push_span(" (".set_style(secondary_text_style()));
             line.extend(key_hint::shift(KeyCode::Tab).spans());
-            line.push_span(" to cycle)".set_style(secondary_text_style()));
+            line.push_span(" 切换）".set_style(secondary_text_style()));
         }
         line
     }
@@ -311,27 +311,27 @@ fn left_side_line(
         SummaryHintKind::Shortcuts => {
             if let Some(key) = key_hints.agents {
                 line.extend(key.spans());
-                line.push_span(" for agents".set_style(secondary_text_style()));
+                line.push_span(" 查看子代理".set_style(secondary_text_style()));
                 if key_hints.toggle_shortcuts.is_some() {
                     line.push_span(" · ".set_style(secondary_text_style()));
                 }
             }
             if let Some(key) = key_hints.toggle_shortcuts {
                 line.extend(key.spans());
-                line.push_span(" for shortcuts".set_style(secondary_text_style()));
+                line.push_span(" 查看快捷键".set_style(secondary_text_style()));
             }
         }
         SummaryHintKind::QueueMessage => {
             if let Some(key) = key_hints.queue {
                 line.extend(key.spans());
-                line.push_span(" to queue message".set_style(secondary_text_style()));
+                line.push_span(" 排队发送消息".set_style(secondary_text_style()));
             }
         }
         #[cfg(test)]
         SummaryHintKind::QueueShort => {
             if let Some(key) = key_hints.queue {
                 line.extend(key.spans());
-                line.push_span(" to queue".set_style(secondary_text_style()));
+                line.push_span(" 排队".set_style(secondary_text_style()));
             }
         }
     };
@@ -558,26 +558,26 @@ pub(crate) fn goal_status_indicator_line(
     let label = match indicator {
         GoalStatusIndicator::Active { usage } => {
             if let Some(usage) = usage {
-                format!("Pursuing goal ({usage})")
+                format!("正在推进目标（{usage}）")
             } else {
-                "Pursuing goal".to_string()
+                "正在推进目标".to_string()
             }
         }
-        GoalStatusIndicator::Paused => "Goal paused (/goal resume)".to_string(),
-        GoalStatusIndicator::Blocked => "Goal stalled (/goal resume)".to_string(),
-        GoalStatusIndicator::UsageLimited => "Goal hit usage limits (/goal resume)".to_string(),
+        GoalStatusIndicator::Paused => "目标已暂停（/goal resume 继续）".to_string(),
+        GoalStatusIndicator::Blocked => "目标受阻（/goal resume 继续）".to_string(),
+        GoalStatusIndicator::UsageLimited => "目标达到用量上限（/goal resume 继续）".to_string(),
         GoalStatusIndicator::BudgetLimited { usage } => {
             if let Some(usage) = usage {
-                format!("Goal unmet ({usage})")
+                format!("目标未完成（{usage}）")
             } else {
-                "Goal abandoned".to_string()
+                "目标已放弃".to_string()
             }
         }
         GoalStatusIndicator::Complete { usage } => {
             if let Some(usage) = usage {
-                format!("Goal achieved ({usage})")
+                format!("目标已完成（{usage}）")
             } else {
-                "Goal achieved".to_string()
+                "目标已完成".to_string()
             }
         }
     };
@@ -593,7 +593,7 @@ pub(crate) fn status_line_right_indicator_line(
 ) -> Option<Line<'static>> {
     let primary_indicator = mode_indicator_line(collaboration_mode_indicator, show_cycle_hint)
         .or_else(|| goal_status_indicator_line(goal_status_indicator));
-    let ide_context_indicator = ide_context_active.then(|| Line::from(vec!["IDE context".cyan()]));
+    let ide_context_indicator = ide_context_active.then(|| Line::from(vec!["IDE 上下文".cyan()]));
     let mut line: Option<Line<'static>> = None;
 
     for indicator in [primary_indicator, ide_context_indicator]
@@ -840,7 +840,7 @@ fn passive_footer_suffix(props: &FooterProps, has_status: bool) -> Line<'static>
             line.push_span(" · ".set_style(secondary_text_style()));
         }
         line.extend(key.spans());
-        line.push_span(" for agents".set_style(secondary_text_style()));
+        line.push_span(" 查看子代理".set_style(secondary_text_style()));
     }
     line
 }
@@ -907,7 +907,7 @@ pub(crate) fn footer_hint_items_line(items: &[(String, String)]) -> Line<'static
 
 fn quit_shortcut_reminder_line(key: KeyBinding) -> Line<'static> {
     let mut line = Line::from(key.spans());
-    line.push_span(" again to quit".set_style(secondary_text_style()));
+    line.push_span(" 再按一次退出".set_style(secondary_text_style()));
     line
 }
 
@@ -915,13 +915,13 @@ fn esc_hint_line(esc_backtrack_hint: bool) -> Line<'static> {
     let esc = key_hint::plain(KeyCode::Esc);
     if esc_backtrack_hint {
         let mut line = Line::from(esc.spans());
-        line.push_span(" again to edit previous message".set_style(secondary_text_style()));
+        line.push_span(" 再按一次编辑上一条消息".set_style(secondary_text_style()));
         line
     } else {
         let mut line = Line::from(esc.spans());
         line.push_span(" ".set_style(secondary_text_style()));
         line.extend(esc.spans());
-        line.push_span(" to edit previous message".set_style(secondary_text_style()));
+        line.push_span(" 编辑上一条消息".set_style(secondary_text_style()));
         line
     }
 }
@@ -930,19 +930,19 @@ pub(crate) fn context_window_line(percent: Option<i64>, used_tokens: Option<i64>
     if let Some(percent) = percent {
         let percent = percent.clamp(0, 100);
         return Line::from(vec![
-            Span::from(format!("{percent}% context left")).set_style(secondary_text_style()),
+            Span::from(format!("上下文剩余 {percent}%")).set_style(secondary_text_style()),
         ]);
     }
 
     if let Some(tokens) = used_tokens {
         let used_fmt = format_tokens_compact(tokens);
         return Line::from(vec![
-            Span::from(format!("{used_fmt} used")).set_style(secondary_text_style()),
+            Span::from(format!("已用 {used_fmt}")).set_style(secondary_text_style()),
         ]);
     }
 
     Line::from(vec![
-        Span::from("100% context left").set_style(secondary_text_style()),
+        Span::from("上下文剩余 100%").set_style(secondary_text_style()),
     ])
 }
 
