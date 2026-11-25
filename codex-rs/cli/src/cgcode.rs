@@ -55,6 +55,43 @@ pub struct CgcodeConfig {
     /// 模型上下文窗口（token 数），不填时使用 128000。
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub context_window: Option<i64>,
+    /// 开机动画设置。
+    #[serde(default)]
+    pub intro: IntroConfig,
+}
+
+/// 开机动画：`enabled = false` 关闭动画，`sound = false` 静音。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct IntroConfig {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    #[serde(default = "default_true")]
+    pub sound: bool,
+}
+
+impl Default for IntroConfig {
+    fn default() -> Self {
+        Self { enabled: true, sound: true }
+    }
+}
+
+fn default_true() -> bool {
+    true
+}
+
+/// 在交互式终端里播放开机动画（可用环境变量 CGCODE_NO_INTRO=1 跳过）。
+async fn maybe_play_intro(cfg: &CgcodeConfig) {
+    if !cfg.intro.enabled {
+        return;
+    }
+    if std::env::var_os("CGCODE_NO_INTRO").is_some_and(|v| !v.is_empty() && v != "0") {
+        return;
+    }
+    if !(std::io::stdin().is_terminal() && std::io::stdout().is_terminal()) {
+        return;
+    }
+    let sound = cfg.intro.sound;
+    let _ = tokio::task::spawn_blocking(move || crate::cgcode_intro::play(sound)).await;
 }
 
 /// 在 tokio 运行时启动之前调用：未设置 CODEX_HOME 时默认使用 `~/.cgcode`。
@@ -250,6 +287,9 @@ pub async fn prepare(is_interactive: bool, overrides: &mut CliConfigOverrides) -
             }
         }
     };
+    if is_interactive {
+        maybe_play_intro(&cfg).await;
+    }
     let mut upstreams = vec![to_upstream(&cfg.api)];
     upstreams.extend(cfg.fallback.iter().filter(|f| !f.base_url.trim().is_empty()).map(to_upstream));
     let addr = cgcode_chat_bridge::spawn(BridgeConfig {
