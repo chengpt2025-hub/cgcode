@@ -129,7 +129,7 @@ impl SlashCommand {
             SlashCommand::DebugConfig => "显示配置层级（调试用）",
             SlashCommand::Title => "设置终端标题显示的内容",
             SlashCommand::Statusline => "设置状态栏显示的内容",
-            SlashCommand::Theme => "选择代码高亮主题",
+            SlashCommand::Theme => "切换界面主题和代码高亮（实时预览）",
             SlashCommand::Pets => "选择或隐藏终端宠物",
             SlashCommand::Ps => "列出后台终端",
             SlashCommand::Stop => "停止所有后台终端",

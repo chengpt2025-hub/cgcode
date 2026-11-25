@@ -270,7 +270,9 @@ fn user_message_accent_color_for(
     background: Option<(u8, u8, u8)>,
     level: StdoutColorLevel,
 ) -> Color {
-    let preferred = if background.is_some_and(is_light) {
+    let preferred = if let Some(theme) = crate::cgcode_theme::current() {
+        theme.accent
+    } else if background.is_some_and(is_light) {
         LIGHT_BG_ACCENT_RGB
     } else {
         UI_ACCENT
@@ -329,7 +331,9 @@ pub(crate) fn accent_style_for(terminal_bg: Option<(u8, u8, u8)>) -> Style {
 }
 
 fn accent_color_for(terminal_bg: Option<(u8, u8, u8)>) -> Color {
-    let preferred = if terminal_bg.is_some_and(is_light) {
+    let preferred = if let Some(theme) = crate::cgcode_theme::current() {
+        theme.accent
+    } else if terminal_bg.is_some_and(is_light) {
         LIGHT_BG_ACCENT_RGB
     } else {
         UI_ACCENT
@@ -359,6 +363,9 @@ pub fn user_message_bg(terminal_bg: (u8, u8, u8)) -> Color {
 }
 
 pub(crate) fn user_message_bg_rgb(terminal_bg: (u8, u8, u8)) -> (u8, u8, u8) {
+    if let Some(theme) = crate::cgcode_theme::current() {
+        return blend(theme.tint, terminal_bg, theme.tint_alpha);
+    }
     shade_rgb(terminal_bg, terminal_bg)
 }
 

@@ -238,6 +238,7 @@ mod status_indicator_widget;
 mod statusline_metrics;
 mod statusline_provider;
 mod streaming;
+mod cgcode_theme;
 mod style;
 mod subscription;
 mod system_motion;

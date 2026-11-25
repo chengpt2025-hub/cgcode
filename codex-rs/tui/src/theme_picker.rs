@@ -334,7 +334,35 @@ pub(crate) fn build_theme_picker_params(
     // Track the index of the current theme so we can preselect it.
     let mut initial_idx = None;
 
-    let items: Vec<SelectionItem> = entries
+    // cgcode：界面主题排在最前面，选中即预览，回车保存。
+    let original_ui = crate::cgcode_theme::current_id();
+    let mut items: Vec<SelectionItem> = crate::cgcode_theme::THEMES
+        .iter()
+        .map(|theme| {
+            let id = theme.id;
+            let syntax = theme.syntax.to_string();
+            SelectionItem {
+                name: format!("界面主题 · {}", theme.name),
+                is_current: original_ui == Some(id),
+                dismiss_on_select: true,
+                search_value: Some(format!("ui:{id}")),
+                actions: vec![Box::new(move |tx| {
+                    crate::cgcode_theme::set_by_id(id);
+                    crate::cgcode_theme::save(id);
+                    tx.send(AppEvent::SyntaxThemeSelected {
+                        name: syntax.clone(),
+                    });
+                })],
+                ..Default::default()
+            }
+        })
+        .collect();
+    let ui_count = items.len();
+    if let Some(id) = original_ui {
+        initial_idx = crate::cgcode_theme::THEMES.iter().position(|t| t.id == id);
+    }
+
+    items.extend(entries
         .iter()
         .enumerate()
         .map(|(idx, entry)| {
@@ -344,8 +372,8 @@ pub(crate) fn build_theme_picker_params(
                 entry.name.clone()
             };
             let is_current = entry.name == effective_name;
-            if is_current {
-                initial_idx = Some(idx);
+            if is_current && initial_idx.is_none() {
+                initial_idx = Some(ui_count + idx);
             }
             let name_for_action = entry.name.clone();
             SelectionItem {
@@ -360,8 +388,7 @@ pub(crate) fn build_theme_picker_params(
                 })],
                 ..Default::default()
             }
-        })
-        .collect();
+        }));
 
     // Derive preview targets from the final `items` list (not from `entries`)
     // so preview ordering stays aligned if item construction/sorting changes.
@@ -370,8 +397,19 @@ pub(crate) fn build_theme_picker_params(
     let preview_home = codex_home_owned.clone();
     let on_selection_changed = Some(Box::new(
         move |idx: usize, tx: &crate::app_event_sender::AppEventSender| {
-            if let Some(Some(name)) = preview_theme_names.get(idx)
-                && let Some(theme) = highlight::resolve_theme_by_name(name, preview_home.as_deref())
+            let Some(Some(name)) = preview_theme_names.get(idx) else {
+                return;
+            };
+            if let Some(id) = name.strip_prefix("ui:") {
+                if let Some(ui) = crate::cgcode_theme::set_by_id(id)
+                    && let Some(theme) =
+                        highlight::resolve_theme_by_name(ui.syntax, preview_home.as_deref())
+                {
+                    highlight::set_syntax_theme(theme);
+                }
+                tx.send(AppEvent::SyntaxThemePreviewed);
+            } else if let Some(theme) =
+                highlight::resolve_theme_by_name(name, preview_home.as_deref())
             {
                 highlight::set_syntax_theme(theme);
                 tx.send(AppEvent::SyntaxThemePreviewed);
@@ -384,12 +422,18 @@ pub(crate) fn build_theme_picker_params(
     let on_cancel = Some(
         Box::new(move |tx: &crate::app_event_sender::AppEventSender| {
             highlight::set_syntax_theme(original_theme.clone());
+            match original_ui {
+                Some(id) => {
+                    crate::cgcode_theme::set_by_id(id);
+                }
+                None => crate::cgcode_theme::clear(),
+            }
             tx.send(AppEvent::SyntaxThemePreviewed);
         }) as Box<dyn Fn(&crate::app_event_sender::AppEventSender) + Send + Sync>,
     );
     SelectionViewParams {
         allow_input_when_disconnected: true,
-        title: Some("Select Syntax Theme".to_string()),
+        title: Some("选择主题（界面配色 + 代码高亮，上下键实时预览）".to_string()),
         subtitle: Some(theme_picker_subtitle(
             codex_home_owned.as_deref(),
             terminal_width,
@@ -397,7 +441,7 @@ pub(crate) fn build_theme_picker_params(
         footer_hint: Some(standard_popup_hint_line()),
         items,
         is_searchable: true,
-        search_placeholder: Some("Type to filter themes...".to_string()),
+        search_placeholder: Some("输入关键字筛选主题…".to_string()),
         initial_selected_idx: initial_idx,
         side_content: Box::new(ThemePreviewWideRenderable),
         side_content_width: SideContentWidth::Half,
