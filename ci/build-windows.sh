@@ -48,6 +48,9 @@ rustup target add "$TARGET"
 BINS="codex codex-windows-sandbox-setup codex-command-runner codex-code-mode-host codex-exec-server"
 args=()
 for b in $BINS; do args+=(--bin "$b"); done
+# 构建缓存（rust-cache）会恢复 v8 的编译记录，但不保留它解压出来的 rusty_v8 静态库，
+# 导致链接时报“could not find native static library rusty_v8”。每次都让 v8 重新跑构建脚本。
+rm -rf "target/$TARGET/release/build/v8-"* "target/$TARGET/release/.fingerprint/v8-"* "target/$TARGET/release/deps/libv8-"* "target/$TARGET/release/deps/v8-"* 2>/dev/null || true
 cargo build --release --target "$TARGET" "${args[@]}"
 
 # 3. 打包：cgcode.exe 加上 Windows 下运行命令沙箱需要的配套程序
