@@ -55,6 +55,7 @@ static ALLOCATOR: tikv_jemallocator::Jemalloc = tikv_jemallocator::Jemalloc;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 mod app_cmd;
 mod cgcode;
+mod cgcode_intro;
 mod app_server_proxy;
 mod config_override_args;
 mod daemon_install;

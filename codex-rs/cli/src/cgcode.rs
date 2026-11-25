@@ -203,6 +203,7 @@ pub async fn run_setup() -> anyhow::Result<CgcodeConfig> {
                     api: ApiConfig { base_url: normalized, api_key, model, wire: wire.to_owned() },
                     fallback: existing.as_ref().map(|c| c.fallback.clone()).unwrap_or_default(),
                     context_window: existing.as_ref().and_then(|c| c.context_window),
+                    intro: existing.as_ref().map(|c| c.intro.clone()).unwrap_or_default(),
                 };
                 save_config(&cfg)?;
                 println!("  配置已保存。之后直接运行 cgcode 即可开始；想修改时运行 cgcode setup。\n");
