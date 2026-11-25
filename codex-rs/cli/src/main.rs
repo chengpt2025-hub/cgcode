@@ -125,8 +125,8 @@ use codex_terminal_detection::TerminalName;
     // The executable is sometimes invoked via a platform‑specific name like
     // `codex-x86_64-unknown-linux-musl`, but the help output should always use
     // the generic `codex` command name that users run.
-    bin_name = "codex",
-    override_usage = "codex [OPTIONS] [PROMPT]\n       codex [OPTIONS] <COMMAND> [ARGS]"
+    bin_name = "cgcode",
+    override_usage = "cgcode [OPTIONS] [PROMPT]\n       cgcode [OPTIONS] <COMMAND> [ARGS]\n       cgcode setup"
 )]
 struct MultitoolCli {
     #[clap(flatten)]
@@ -2832,7 +2832,7 @@ fn merge_interactive_cli_flags(interactive: &mut TuiCli, subcommand_cli: TuiCli)
 
 fn print_completion(cmd: CompletionCommand) {
     let mut app = MultitoolCli::command();
-    let name = "codex";
+    let name = "cgcode";
     generate(cmd.shell, &mut app, name, &mut std::io::stdout());
 }
 
