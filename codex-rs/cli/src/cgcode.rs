@@ -168,7 +168,13 @@ pub async fn run_setup() -> anyhow::Result<CgcodeConfig> {
     println!("  配置保存在 {}，Key 只存在你自己的电脑上。", config_path().display());
     println!();
     loop {
-        let prev = existing.as_ref().map(|c| c.api.clone()).unwrap_or_default();
+        // 默认使用商汤日日新官方接口与官方模型，直接回车即可。
+        let prev = existing.as_ref().map(|c| c.api.clone()).unwrap_or_else(|| ApiConfig {
+            base_url: "https://token.sensenova.cn/v1".to_owned(),
+            api_key: String::new(),
+            model: "sensenova-6.8-flash".to_owned(),
+            wire: "chat".to_owned(),
+        });
         let base_url = prompt("① 接口地址（例如 https://api.deepseek.com/v1）", Some(&prev.base_url))?;
         if base_url.is_empty() {
             println!("  接口地址不能为空。\n");

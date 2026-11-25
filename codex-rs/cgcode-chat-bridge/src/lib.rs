@@ -179,6 +179,22 @@ async fn handle_models(State(_st): State<Arc<AppState>>) -> Response {
 /// 首次启动向导用：探测用户填写的接口是 Chat Completions 还是 Responses，
 /// 并确认 Key 和模型名可用。返回规范化后的 base_url 和接口类型。
 pub async fn probe(base_url: &str, api_key: &str, model: &str) -> Result<(String, UpstreamMode), String> {
+    // 平台限流时（429）快速重试，最多约 90 秒。
+    let started = std::time::Instant::now();
+    let mut tries: u32 = 0;
+    loop {
+        tries += 1;
+        let result = probe_once(base_url, api_key, model).await;
+        match &result {
+            Err(msg) if msg.contains("错误 429") && started.elapsed() < Duration::from_secs(90) => {
+                tokio::time::sleep(retry_delay(tries)).await;
+            }
+            _ => return result,
+        }
+    }
+}
+
+async fn probe_once(base_url: &str, api_key: &str, model: &str) -> Result<(String, UpstreamMode), String> {
     let client = reqwest::Client::builder()
         .connect_timeout(Duration::from_secs(15))
         .timeout(Duration::from_secs(90))
@@ -242,9 +258,27 @@ async fn handle_responses(State(st): State<Arc<AppState>>, body: Bytes) -> Respo
     };
     let mut last_error = (StatusCode::BAD_GATEWAY, String::from("没有可用的模型接口"));
     for (idx, up) in st.cfg.upstreams.iter().enumerate() {
-        let attempt = match up.mode {
-            UpstreamMode::Responses => send_responses_passthrough(&st, up, &request).await,
-            UpstreamMode::ChatCompletions => send_chat(&st, up, &request).await,
+        // 限流（429）或服务端临时错误时，在同一个接口上快速重试：
+        // 很多平台高峰期大部分请求会被限流，但连续快速重试通常几秒内就能成功。
+        let started = std::time::Instant::now();
+        let mut tries: u32 = 0;
+        let attempt = loop {
+            tries += 1;
+            let attempt = match up.mode {
+                UpstreamMode::Responses => send_responses_passthrough(&st, up, &request).await,
+                UpstreamMode::ChatCompletions => send_chat(&st, up, &request).await,
+            };
+            let retryable = match &attempt {
+                Err((Some(s), _)) => *s == StatusCode::TOO_MANY_REQUESTS || s.is_server_error(),
+                Err((None, _)) => tries < 3,
+                Ok(_) => false,
+            };
+            if !retryable || started.elapsed() >= RETRY_BUDGET {
+                break attempt;
+            }
+            let delay = retry_delay(tries);
+            tracing::info!("模型接口繁忙，第 {tries} 次重试，{} 毫秒后再试", delay.as_millis());
+            tokio::time::sleep(delay).await;
         };
         match attempt {
             Ok(resp) => return resp,
@@ -260,6 +294,20 @@ async fn handle_responses(State(st): State<Arc<AppState>>, body: Bytes) -> Respo
         }
     }
     error_response(last_error.0, &last_error.1)
+}
+
+/// 单个接口上限流重试的总时长上限，超过后切换备用接口或报错。
+const RETRY_BUDGET: std::time::Duration = std::time::Duration::from_secs(120);
+
+/// 重试间隔：前几次很短（疯狂重试），之后逐渐放慢，最长 2 秒。
+fn retry_delay(tries: u32) -> std::time::Duration {
+    let ms = match tries {
+        0..=10 => 300,
+        11..=30 => 600,
+        31..=60 => 1000,
+        _ => 2000,
+    };
+    std::time::Duration::from_millis(ms)
 }
 
 type AttemptResult = Result<Response, (Option<StatusCode>, String)>;
