@@ -48,6 +48,8 @@ echo "界面语言包剩余产品名: $(grep -rl "DeepSeek Harness" "$SRC/packag
 node "$ROOT/desktop/patch-defaults.mjs" "$SRC"
 # 10. 自动更新改用 cgcode 自己的更新源(不再连 DeepSeek 官方下载服务器)
 node "$ROOT/desktop/patch-update.mjs" "$SRC"
+# 11. 正式版版本号 1.0.0(底座各包版本需一致，整体替换)
+node "$ROOT/desktop/patch-version.mjs" "$SRC" 1.0.0
 # 8. 预装开源热门技能(固定提交，已核对许可证与安全)
 node "$ROOT/desktop/fetch-skills.mjs" "$ROOT" "$SRC" "$(dirname "$SRC")/upstream-skills"
 echo "apply: 品牌与中文默认已套用"
