@@ -52,3 +52,25 @@ patch(`${process.argv[2]}/apps/desktop/scripts/electron-builder-config.mjs`, [[
   "      { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },\n",
   "      { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },\n      { from: fileURLToPath(new URL('../resources/intro.mp4', import.meta.url)), to: 'intro.mp4' },\n      { from: fileURLToPath(new URL('../resources/intro.html', import.meta.url)), to: 'intro.html' },\n",
   '打包开机视频']])
+
+// 预装中文技能：首次启动把 resources/skills 复制到 ~/.agents/skills(已存在的不覆盖)
+patch(`${D}/main.ts`, [
+  ["import { access, readFile, writeFile } from 'node:fs/promises'\n",
+   "import { access, readFile, writeFile, cp as cgcodeCopy, mkdir as cgcodeMkdir } from 'node:fs/promises'\nimport { homedir as cgcodeHomedir } from 'node:os'\n", '技能复制所需导入'],
+  ["async function main(): Promise<void> {\n",
+   `async function installCgcodeSkills(): Promise<void> {
+  if (!app.isPackaged) return
+  const source = join(process.resourcesPath, 'skills')
+  try { await access(source) } catch { return }
+  const target = join(process.env.DSH_AGENTS_HOME ?? join(cgcodeHomedir(), '.agents'), 'skills')
+  await cgcodeMkdir(target, { recursive: true })
+  await cgcodeCopy(source, target, { recursive: true, force: false, errorOnExist: false })
+}
+
+async function main(): Promise<void> {
+  await installCgcodeSkills().catch(() => undefined)
+`, '预装技能']])
+patch(`${process.argv[2]}/apps/desktop/scripts/electron-builder-config.mjs`, [[
+  "      { from: fileURLToPath(new URL('../resources/intro.html', import.meta.url)), to: 'intro.html' },\n",
+  "      { from: fileURLToPath(new URL('../resources/intro.html', import.meta.url)), to: 'intro.html' },\n      { from: fileURLToPath(new URL('../resources/skills', import.meta.url)), to: 'skills' },\n",
+  '打包预装技能']])
