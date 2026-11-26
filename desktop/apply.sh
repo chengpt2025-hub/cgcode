@@ -46,6 +46,8 @@ sed -i 's/DeepSeek Harness/cgcode/g' "$SRC/packages/bundle/web-app/src/index.ts"
 echo "界面语言包剩余产品名: $(grep -rl "DeepSeek Harness" "$SRC/packages/client" --include=locales.ts 2>/dev/null | wc -l)"
 # 9. 默认开启底座自带的语音输入、历史搜索、会话标题、插件市场
 node "$ROOT/desktop/patch-defaults.mjs" "$SRC"
+# 10. 自动更新改用 cgcode 自己的更新源(不再连 DeepSeek 官方下载服务器)
+node "$ROOT/desktop/patch-update.mjs" "$SRC"
 # 8. 预装开源热门技能(固定提交，已核对许可证与安全)
 node "$ROOT/desktop/fetch-skills.mjs" "$ROOT" "$SRC" "$(dirname "$SRC")/upstream-skills"
 echo "apply: 品牌与中文默认已套用"
