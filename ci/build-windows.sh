@@ -49,6 +49,20 @@ export PNPM_CONFIG_STORE_DIR="$W/pnpm-store"
 echo "== 安装依赖"
 pnpm install --frozen-lockfile
 
+echo "== 检查 PowerShell 7(打包预检需要)"
+for d in "/c/Program Files/PowerShell/7" "/c/Program Files/PowerShell/7-preview"; do
+  [ -x "$d/pwsh.exe" ] && export PATH="$PATH:$d"
+done
+if ! command -v pwsh >/dev/null 2>&1; then
+  echo "未找到 pwsh，用 winget/dotnet 以外的方式安装 PowerShell 7"
+  PWV=7.4.6
+  curl -fsSL -o "$W/pwsh.zip" "https://github.com/PowerShell/PowerShell/releases/download/v$PWV/PowerShell-$PWV-win-x64.zip"
+  mkdir -p "$W/pwsh" && (cd "$W/pwsh" && unzip -q -o ../pwsh.zip)
+  export PATH="$PATH:$W/pwsh"
+fi
+command -v pwsh
+pwsh -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString(); Import-Module "$PSHOME/Modules/Microsoft.PowerShell.Security/Microsoft.PowerShell.Security.psd1" -ErrorAction Stop; (Get-Command Get-AuthenticodeSignature).Name' || echo "警告: pwsh 自检失败"
+
 echo "== 打包 Windows 安装程序(未签名)"
 pnpm run package:desktop:win:x64:unsigned > "$W/package.log" 2>&1 || { tail -c 30000 "$W/package.log"; exit 1; }
 tail -c 8000 "$W/package.log"
