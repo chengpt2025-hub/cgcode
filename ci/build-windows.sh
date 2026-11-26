@@ -1,83 +1,58 @@
 #!/usr/bin/env bash
-# cgcode Windows 构建脚本（由 .github/workflows/cgcode-build.yml 调用）
-# 所有构建逻辑都放在这里，工作流文件本身保持不变。
+# cgcode 第二版(桌面客户端)Windows 构建脚本。
+# 底座：DeepSeek Harness 开源代码(MIT)，钉在固定提交；在其上套用 desktop/ 下的 cgcode 改造。
 set -uo pipefail
-
 ROOT="$(pwd)"
 LOG="$ROOT/build.log"
-exec > >(tee "$LOG") 2>&1
+: > "$LOG"
+exec > >(tee -a "$LOG") 2>&1
 set -e
+DSH_SHA="$(cat "$ROOT/desktop/DSH_COMMIT")"
+W=/c/cgw
+echo "== cgcode v2 构建：底座提交 $DSH_SHA"
+rm -rf "$W"; mkdir -p "$W"
 
-TARGET="x86_64-pc-windows-msvc"
-echo "== cgcode Windows 构建 =="
-echo "提交：$(git rev-parse HEAD)"
+echo "== 准备 Node 24"
+NV=$(curl -fsSL https://nodejs.org/dist/latest-v24.x/SHASUMS256.txt | grep -o 'node-v[0-9.]*-win-x64\.zip' | head -1)
+curl -fsSL "https://nodejs.org/dist/latest-v24.x/$NV" -o "$W/node.zip"
+unzip -q "$W/node.zip" -d "$W"
+NODE_DIR="$W/${NV%.zip}"
+export PATH="$NODE_DIR:$PATH"
+node -v
+npm i -g pnpm@11.28.5 >/dev/null
+pnpm -v
 
-# 1. 准备 rusty_v8 预编译产物（复用上游 setup-rusty-v8 动作里的脚本）
-python -m pip install --quiet pyyaml
-V8_SCRIPT="$(mktemp)"
-python - "$ROOT/.github/actions/setup-rusty-v8/action.yml" > "$V8_SCRIPT" <<'PY'
-import sys, yaml
-action = yaml.safe_load(open(sys.argv[1], encoding="utf-8"))
-for step in action["runs"]["steps"]:
-    if "run" in step:
-        print(step["run"])
-PY
-ENV_FILE="$(mktemp)"
-export RUNNER_TEMP="${RUNNER_TEMP:-$(mktemp -d)}"
-export GITHUB_WORKSPACE="$ROOT"
-export TARGET
-GITHUB_ENV="$ENV_FILE" bash "$V8_SCRIPT"
-# 把上游脚本写入 GITHUB_ENV 的变量导出到当前环境
-while IFS= read -r line; do
-  case "$line" in
-    *=*) export "${line%%=*}=${line#*=}"; echo "设置环境变量 ${line%%=*}" ;;
-  esac
-done < "$ENV_FILE"
-
-# 2. 编译
-# Windows 默认路径长度上限 260，rusty_v8 的子模块里有超长路径，需要开启长路径并缩短 CARGO_HOME
+echo "== 获取底座源码"
 git config --global core.longpaths true
-export CARGO_NET_GIT_FETCH_WITH_CLI=true
-export CARGO_HOME="C:/cg"
-mkdir -p "$CARGO_HOME"
-export LIBSQLITE3_FLAGS=SQLITE_DISABLE_INTRINSIC
-export STABLE_GIT_COMMIT="$(git rev-parse HEAD)"
-cd "$ROOT/codex-rs"
-rustup show active-toolchain || rustup toolchain install
-rustup target add "$TARGET"
-BINS="codex codex-windows-sandbox-setup codex-command-runner codex-code-mode-host codex-exec-server"
-args=()
-for b in $BINS; do args+=(--bin "$b"); done
-# 构建缓存（rust-cache）会恢复 v8 的编译记录，但不保留它解压出来的 rusty_v8 静态库，
-# 导致链接时报“could not find native static library rusty_v8”。每次都让 v8 重新跑构建脚本。
-rm -rf "target/$TARGET/release/build/v8-"* "target/$TARGET/release/.fingerprint/v8-"* "target/$TARGET/release/deps/libv8-"* "target/$TARGET/release/deps/v8-"* 2>/dev/null || true
-cargo build --release --target "$TARGET" "${args[@]}"
+git init -q "$W/src"
+cd "$W/src"
+git remote add origin https://github.com/deepseek-ai/deepseek-harness.git
+git fetch -q --depth 1 origin "$DSH_SHA"
+git checkout -q FETCH_HEAD
 
-# 3. 打包：cgcode.exe 加上 Windows 下运行命令沙箱需要的配套程序
-REL="target/$TARGET/release"
-PKG="$ROOT/dist/cgcode-windows-x64"
-rm -rf "$ROOT/dist"
-mkdir -p "$PKG"
-cp "$REL/codex.exe" "$PKG/cgcode.exe"
-for b in $BINS; do
-  [ "$b" = "codex" ] && continue
-  if [ -f "$REL/$b.exe" ]; then cp "$REL/$b.exe" "$PKG/"; else echo "提示：未找到 $b.exe"; fi
-done
-cp "$ROOT/LICENSE" "$PKG/" 2>/dev/null || true
-cp "$ROOT/NOTICE" "$PKG/" 2>/dev/null || true
-cat > "$PKG/使用说明.txt" <<'EOF'
-cgcode 使用说明
+echo "== 套用 cgcode 改造"
+if [ -d "$ROOT/desktop/overlay" ]; then cp -r "$ROOT/desktop/overlay/." "$W/src/"; fi
+if [ -f "$ROOT/desktop/apply.sh" ]; then bash "$ROOT/desktop/apply.sh" "$ROOT" "$W/src"; fi
 
-1. 把整个文件夹放到一个固定位置，例如 C:\cgcode
-2. 打开“终端”或 PowerShell，进入你的项目目录，运行：
-     C:\cgcode\cgcode.exe
-   （也可以把 C:\cgcode 加入系统 PATH，之后直接输入 cgcode）
-3. 第一次运行会进入中文配置向导，填写接口地址、API Key、模型名即可。
-4. 重新配置模型接口：cgcode setup
-5. 配置文件位置：%USERPROFILE%\.cgcode\cgcode.toml
-EOF
-cp "$REL/codex.exe" "$ROOT/dist/cgcode.exe"
-(cd "$ROOT/dist" && powershell -NoProfile -Command "Compress-Archive -Path 'cgcode-windows-x64' -DestinationPath 'cgcode-windows-x64.zip' -Force")
-rm -rf "$PKG"
+export DSH_TELEMETRY_DISABLED=1
+export DSH_PACKAGING_PRESET=test
+export DSH_DESKTOP_UPDATE_CHANNEL=stable
+export PACKAGE_SIGNING=unsigned
+export PACKAGE_WINDOWS_COMPRESSION_LEVEL=3
+export DSH_DESKTOP_PACKAGE_CACHE_DIR="$W/pkgcache"
+export PNPM_CONFIG_STORE_DIR="$W/pnpm-store"
+
+echo "== 安装依赖"
+pnpm install --frozen-lockfile
+
+echo "== 打包 Windows 安装程序(未签名)"
+pnpm run package:desktop:win:x64:unsigned
+
+echo "== 收集产物"
+mkdir -p "$ROOT/dist"
+find "$W" -maxdepth 8 \( -iname '*.exe' -o -iname '*.zip' -o -iname '*.blockmap' -o -iname 'latest*.yml' \) -newer "$W/node.zip" \
+  -not -path '*/node_modules/*' -not -path '*/pnpm-store/*' -not -path "$NODE_DIR/*" -size +1M 2>/dev/null | tee "$W/found.txt" || true
+grep -i 'setup\|installer\|cgcode\|harness' "$W/found.txt" | grep -i '\.exe$' | while read -r f; do cp "$f" "$ROOT/dist/"; done
 ls -la "$ROOT/dist"
-echo "== 构建完成 =="
+if ! ls "$ROOT/dist"/*.exe >/dev/null 2>&1; then echo "没有找到安装程序"; exit 1; fi
+echo "== 完成"
