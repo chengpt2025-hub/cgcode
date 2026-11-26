@@ -23,3 +23,32 @@ patch(`${D}/locale.ts`, [
 patch(`${process.argv[2]}/packages/client/ui-brand-official/src/client/index.ts`, [[
   "  ctx.slots.inject('conversation.hero.frame', () => ctx.slots.register({\n    name: 'conversation.hero.frame',\n    id: 'pixel-whale',\n  }, PixelWhale))\n",
   "  void PixelWhale\n", '去掉首页鲸鱼装饰']])
+
+// 开机视频：主窗口出现前播放 cgcode 开机视频(原画质)，点击/按键跳过，最长 15 秒
+patch(`${D}/main.ts`, [[
+  "async function main(): Promise<void> {\n",
+  `async function playCgcodeIntro(): Promise<void> {
+  if (!app.isPackaged || process.env.CGCODE_NO_INTRO !== undefined) return
+  const page = join(process.resourcesPath, 'intro.html')
+  try { await access(page) } catch { return }
+  await new Promise<void>((resolve) => {
+    const intro = new BrowserWindow({
+      width: 1248, height: 704, frame: false, resizable: false, center: true, show: false,
+      backgroundColor: '#000000', skipTaskbar: true, alwaysOnTop: true,
+      webPreferences: { autoplayPolicy: 'no-user-gesture-required', sandbox: true, contextIsolation: true },
+    })
+    const finish = (): void => { clearTimeout(timer); if (!intro.isDestroyed()) intro.destroy(); resolve() }
+    const timer = setTimeout(finish, 16000)
+    intro.on('closed', finish)
+    intro.once('ready-to-show', () => { intro.show() })
+    intro.loadFile(page).catch(finish)
+  })
+}
+
+async function main(): Promise<void> {
+  await playCgcodeIntro().catch(() => undefined)
+`, '开机视频']])
+patch(`${process.argv[2]}/apps/desktop/scripts/electron-builder-config.mjs`, [[
+  "      { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },\n",
+  "      { from: fileURLToPath(new URL('../resources/icon-windows.png', import.meta.url)), to: 'icon.png' },\n      { from: fileURLToPath(new URL('../resources/intro.mp4', import.meta.url)), to: 'intro.mp4' },\n      { from: fileURLToPath(new URL('../resources/intro.html', import.meta.url)), to: 'intro.html' },\n",
+  '打包开机视频']])

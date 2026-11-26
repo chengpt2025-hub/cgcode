@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>cgcode</title>
+<style>html,body{margin:0;height:100%;background:#000;overflow:hidden;cursor:pointer}
+video{width:100%;height:100%;object-fit:contain;display:block}
+#skip{position:fixed;right:16px;bottom:12px;color:#fff8;font:13px system-ui,"Microsoft YaHei";}</style></head>
+<body><video id="v" src="intro.mp4" autoplay playsinline></video><div id="skip">点击或按任意键跳过</div>
+<script>
+const done=()=>window.close();const v=document.getElementById('v');
+v.addEventListener('ended',done);v.addEventListener('error',done);
+addEventListener('click',done);addEventListener('keydown',done);
+setTimeout(done,15000);
+</script></body></html>
