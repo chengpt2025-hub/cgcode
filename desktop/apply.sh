@@ -24,7 +24,7 @@ sed -i "s/'DeepSeek Harness'/'cgcode'/g" "$D/src/locale.ts"
 
 # 2b. 打包脚本、安装器文案、卸载登记里写死的产品名/可执行文件名，统一改为 cgcode
 grep -rlZ "DeepSeek Harness" "$D/scripts" "$D/installer" "$D/src" --include=*.ts --include=*.mjs --include=*.ps1 --include=*.h --include=*.json --include=*.nsh 2>/dev/null \
-  | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
+  | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g' || true
 echo "剩余写死产品名的文件数: $(grep -rl "DeepSeek Harness" "$D/scripts" "$D/installer" "$D/src" --include=*.ts --include=*.mjs --include=*.ps1 --include=*.h --include=*.json --include=*.nsh 2>/dev/null | wc -l)"
 
 # 3. 默认中文：没有手动选语言时优先简体中文
@@ -35,13 +35,13 @@ grep -c '\["zh", ...languages\]' "$D/src/locale.ts"
 # 4. 模型与遥测：默认日日新、预置通义/Kimi(DeepSeek 由底座自带路由提供)、关闭桌面产品遥测
 node "$ROOT/desktop/patch-bundle.mjs" "$SRC"
 # 5. 模型插件文案里的产品名
-grep -rlZ "DeepSeek Harness" "$SRC/packages" --include=*.json 2>/dev/null | grep -z "/locale/" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
+grep -rlZ "DeepSeek Harness" "$SRC/packages" --include=*.json 2>/dev/null | grep -z "/locale/" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g' || true
 # 6. 首次欢迎页：填写日日新 API Key
 node "$ROOT/desktop/patch-desktop.mjs" "$SRC"
 # 6b. 品牌：界面里所有 DeepSeek 鲸鱼标志、字标、引导图、产品名换成 cgcode
 node "$ROOT/desktop/patch-brand.mjs" "$SRC"
 # 7. 网页界面文案里的产品名(界面语言包与启动说明)
-find "$SRC/packages/client" -path '*/node_modules' -prune -o -type f \( -name 'locales.ts' -o -path '*/locales/*.ts' \) -print0 | xargs -0 -r grep -lZ "DeepSeek Harness" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
+find "$SRC/packages/client" -path '*/node_modules' -prune -o -type f \( -name 'locales.ts' -o -path '*/locales/*.ts' \) -print0 | xargs -0 -r grep -lZ "DeepSeek Harness" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g' || true
 sed -i 's/DeepSeek Harness/cgcode/g' "$SRC/packages/bundle/web-app/src/index.ts" "$SRC/packages/bundle/web-app/src/startup.ts" "$SRC/packages/bundle/sdk-app/src/index.ts"
 echo "界面语言包剩余产品名: $(grep -rl "DeepSeek Harness" "$SRC/packages/client" --include=locales.ts 2>/dev/null | wc -l)"
 # 9. 默认开启底座自带的语音输入、历史搜索、会话标题、插件市场
