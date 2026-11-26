@@ -38,6 +38,8 @@ node "$ROOT/desktop/patch-bundle.mjs" "$SRC"
 grep -rlZ "DeepSeek Harness" "$SRC/packages" --include=*.json 2>/dev/null | grep -z "/locale/" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
 # 6. 首次欢迎页：填写日日新 API Key
 node "$ROOT/desktop/patch-desktop.mjs" "$SRC"
+# 6b. 品牌：界面里所有 DeepSeek 鲸鱼标志、字标、引导图、产品名换成 cgcode
+node "$ROOT/desktop/patch-brand.mjs" "$SRC"
 # 7. 网页界面文案里的产品名(界面语言包与启动说明)
 find "$SRC/packages/client" -path '*/node_modules' -prune -o -type f \( -name 'locales.ts' -o -path '*/locales/*.ts' \) -print0 | xargs -0 -r grep -lZ "DeepSeek Harness" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
 sed -i 's/DeepSeek Harness/cgcode/g' "$SRC/packages/bundle/web-app/src/index.ts" "$SRC/packages/bundle/web-app/src/startup.ts" "$SRC/packages/bundle/sdk-app/src/index.ts"
