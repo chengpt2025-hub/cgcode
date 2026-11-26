@@ -322,10 +322,17 @@ ci/build-windows.sh        Windows build script (Node 24 + pnpm)
 - [x] Plugin "Discover" tab on by default; skill search and one-click install via the skill-market skill
 - [x] Auto-update from cgcode's own feed (GitHub Pages), no longer the upstream servers
 - [x] Official 1.0.0: iOS-blue primary buttons, larger corner radii
-- [ ] Code signing
 - [x] Official 1.0.0 installer (unsigned for now)
 
 ---
+
+## Security review (1.0.0)
+
+- **Own code**: patch scripts, build script and update-feed generator reviewed; no keys or passwords in the repository.
+- **Client hardening**: every window runs with sandbox and context isolation, Node integration off; external links open only as http/https in the system browser.
+- **Update sources**: auto-update and the mandatory-update policy contact only cgcode's own address, never the upstream servers; product telemetry and session upload are off.
+- **Dependency vulnerabilities**: pnpm audit found 37 published advisories (8 high). The 10 packages that ship with the client (MCP SDK, hono, body-parser, fast-uri, fflate and others) are forced to patched versions; the rest are test or release tooling and are not in the installer.
+- **Preinstalled skills**: all 38 reviewed; no key theft, obfuscated code or jailbreak content. Skills that install components from the internet now pin exact versions, no longer pipe downloaded scripts into a shell, and must ask before installing.
 
 ## Known limitations
 
