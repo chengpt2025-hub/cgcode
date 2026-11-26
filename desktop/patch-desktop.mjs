@@ -18,3 +18,8 @@ patch(`${D}/locale.ts`, [
   ["welcomeKeyDescription: 'Configure official DeepSeek models to start using Harness'", "welcomeKeyDescription: 'Enter your SenseNova API Key to start using cgcode'", '英文欢迎文案'],
   ["welcomeKeyDescription: '配置 DeepSeek 官方模型，即可开始使用'", "welcomeKeyDescription: '填写商汤日日新 API Key，即可开始使用'", '中文欢迎文案'],
 ])
+
+// 首页鲸鱼装饰(DeepSeek 吉祥物)不再显示
+patch(`${process.argv[2]}/packages/client/ui-brand-official/src/client/index.ts`, [[
+  "  ctx.slots.inject('conversation.hero.frame', () => ctx.slots.register({\n    name: 'conversation.hero.frame',\n    id: 'pixel-whale',\n  }, PixelWhale))\n",
+  "  void PixelWhale\n", '去掉首页鲸鱼装饰']])
