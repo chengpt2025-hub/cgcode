@@ -36,4 +36,6 @@ grep -c '\["zh", ...languages\]' "$D/src/locale.ts"
 node "$ROOT/desktop/patch-bundle.mjs" "$SRC"
 # 5. 模型插件文案里的产品名
 grep -rlZ "DeepSeek Harness" "$SRC/packages" --include=*.json 2>/dev/null | grep -z "/locale/" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
+# 6. 首次欢迎页：填写日日新 API Key
+node "$ROOT/desktop/patch-desktop.mjs" "$SRC"
 echo "apply: 品牌与中文默认已套用"
