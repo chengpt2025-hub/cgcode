@@ -55,7 +55,7 @@ cgcode is an **AI assistant that works with any large language model you choose*
 - Optional **fallback endpoints** take over when the primary one fails.
 
 ### 6. Skills out of the box
-- Terminal edition: **6** Chinese developer skills. Desktop client: **33** skills (14 in-house Chinese skills plus 19 curated popular open-source skills).
+- Terminal edition: **6** Chinese developer skills. Desktop client: **36** skills (17 in-house Chinese skills plus 19 curated popular open-source skills).
 - The desktop client includes a **Chinese skill market**: search skills.sh, ClawHub and SkillHub with one sentence, see results in Chinese, and **install with one click after a safety check**.
 - Every preinstalled skill is license-checked and security-reviewed. **Jailbreak-style skills are rejected** to protect your account and keys from being banned.
 
@@ -80,7 +80,7 @@ cgcode is an **AI assistant that works with any large language model you choose*
 | Account | None; just your own key | OpenAI account or key | Overseas account |
 | First-run setup | Chinese wizard with connection test | Manual configuration | Account sign-in |
 | Usage reporting | All off by default | Depends on vendor settings | Depends on vendor policy |
-| Preinstalled Chinese skills | 6 (terminal) / 33 + skill market (desktop) | None | None |
+| Preinstalled Chinese skills | 6 (terminal) / 36 + skill market (desktop) | None | None |
 | Desktop app for non-developers | Yes | No | Yes |
 
 ---
@@ -172,10 +172,15 @@ sound   = true   # false mutes the boot sound
   - **Web reach**: read Bilibili, YouTube subtitles, V2EX, Xueqiu, GitHub, RSS and any web page; login-only channels such as Xiaohongshu are off by default, with a ban-risk warning before enabling (based on Agent-Reach).
   - **Long-term memory**: preferences you ask it to remember are stored on your PC and survive new conversations.
   - **Safe mode**: asks before sending, paying or deleting; never handles passwords or codes; treats web content as data, not instructions; reports what it did.
+- **New in v2.2**:
+  - **Local offline models**: with Ollama installed, a "Local offline models" group appears; no internet or API key needed. Preset: Qwen 3.5 4B, DeepSeek R1 8B/14B.
+  - **Voice & narration**: text to speech in many dialects and languages, with voice cloning (own or authorized voices only; files labelled "AI合成"), based on VoxCPM2.
+  - **Creator studio**: topic, script, storyboard, character voices and subtitles end to end.
+  - **Conversation stats bar**: turns, model and tool time, time to first token.
 
-### Preinstalled skills (33)
+### Preinstalled skills (36)
 
-**In-house Chinese skills (14)**
+**In-house Chinese skills (17)**
 
 | Skill | What it does |
 |---|---|
@@ -193,6 +198,9 @@ sound   = true   # false mutes the boot sound
 | cg-web-reach | Web reach: Bilibili, YouTube subtitles, V2EX, Xueqiu, GitHub, RSS, web pages |
 | cg-desktop-control | Computer control: operate other Windows apps, confirming risky actions |
 | cg-long-memory | Long-term memory: keeps preferences you ask it to remember on your PC |
+| cg-offline-mode | Offline mode: install Ollama and pick a local model for your GPU |
+| cg-voice-studio | Voice & narration: TTS, dialects, voice cloning (authorized only) |
+| cg-creator-studio | Creator studio: script → storyboard → voices → subtitles |
 
 **Curated open-source skills (19)**
 
@@ -294,8 +302,9 @@ ci/build-windows.sh        Windows build script (Node 24 + pnpm)
 - [x] Session telemetry and product analytics off
 - [x] Full-quality boot video
 - [x] Multi-agent collaboration, Office, scheduled tasks
-- [x] 33 preinstalled skills + Chinese skill market
+- [x] 36 preinstalled skills + Chinese skill market
 - [x] v2.1: local voice input, history search, computer control, web reach, long-term memory, safe mode
+- [x] v2.2: local offline models, voice & narration, creator studio, stats bar
 - [ ] Acceptance testing on real hardware
 - [ ] Replace the upstream plugin market with cgcode recommendations
 - [ ] Claude-style UI polish (frosted glass and full iOS effects)
