@@ -52,6 +52,8 @@ node "$ROOT/desktop/patch-update.mjs" "$SRC"
 node "$ROOT/desktop/patch-version.mjs" "$SRC" 1.0.0
 # 12. cgcode 界面主题(iOS 蓝主按钮、更大的圆角)
 node "$ROOT/desktop/patch-theme.mjs" "$SRC"
+# 13. 依赖安全加固(把已知漏洞依赖升到修复版本)
+node "$ROOT/desktop/patch-security.mjs" "$SRC"
 # 8. 预装开源热门技能(固定提交，已核对许可证与安全)
 node "$ROOT/desktop/fetch-skills.mjs" "$ROOT" "$SRC" "$(dirname "$SRC")/upstream-skills"
 echo "apply: 品牌与中文默认已套用"

@@ -8,7 +8,7 @@ description: "电脑操控：读取并操作 Windows 上任意桌面软件的窗
 ## 首次使用：安装(只需一次)
 1. 运行 `agent-desktop --version`，能输出版本号就跳到“使用”。
 2. 没有 Node.js(`node --version` 失败)时，告诉用户需要先安装 Node.js 18 以上(可用 `winget install OpenJS.NodeJS.LTS`)，征得同意后安装。
-3. 运行 `npm install -g agent-desktop` 安装(通过 npm 安装可避免 SmartScreen 拦截)。
+3. 运行 `npm install -g agent-desktop@1.3.1`(固定版本；先征得用户同意) 安装(通过 npm 安装可避免 SmartScreen 拦截)。
 4. 运行 `agent-desktop permissions` 检查权限；Windows 普通程序一般不需要额外授权。
 5. 运行 `agent-desktop skills get platform` 了解本机支持的能力。
 

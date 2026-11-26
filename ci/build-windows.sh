@@ -47,7 +47,8 @@ export DSH_DESKTOP_PACKAGE_CACHE_DIR="$W/pkgcache"
 export PNPM_CONFIG_STORE_DIR="$W/pnpm-store"
 
 echo "== 安装依赖"
-pnpm install --frozen-lockfile
+# 安全加固加了 overrides，锁文件需按覆盖重新解析
+pnpm install --no-frozen-lockfile
 
 echo "== 检查 PowerShell 7(打包预检需要)"
 for d in "/c/Program Files/PowerShell/7" "/c/Program Files/PowerShell/7-preview"; do

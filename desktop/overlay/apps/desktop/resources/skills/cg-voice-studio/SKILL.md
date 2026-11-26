@@ -8,7 +8,7 @@ description: "配音与朗读：把文字转成自然的语音(普通话、粤�
 ## 首次使用：安装(需用户同意)
 1. 说明：需要 Python 3.10 以上，最好有 NVIDIA 显卡(约 8GB 显存以上)，模型约几 GB，首次下载较慢。
 2. 没有 uv 时先安装(见“全网阅读”技能里的 uv 安装命令)。
-3. 创建独立环境并安装：`uv venv %USERPROFILE%\.cgcode\voice && %USERPROFILE%\.cgcode\voice\Scripts\activate && uv pip install voxcpm`
+3. 创建独立环境并安装：`uv venv %USERPROFILE%\.cgcode\voice && %USERPROFILE%\.cgcode\voice\Scripts\activate && uv pip install voxcpm==2.0.3`(固定版本；安装前先征得用户同意)
 4. 以 VoxCPM 官方 README(github.com/OpenBMB/VoxCPM)中的最新示例为准生成语音；国内网络可从 ModelScope 下载模型。
 
 ## 朗读 / 配音

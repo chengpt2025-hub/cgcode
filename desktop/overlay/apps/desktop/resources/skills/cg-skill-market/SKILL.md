@@ -8,8 +8,8 @@ description: "技能市场(中文)：在全球技能市场(skills.sh、ClawHub�
 ## 搜索
 1. 把用户需求翻译成 2-3 个英文关键词，同时保留中文关键词。
 2. 分别搜索：
-   - skills.sh：运行 `npx -y skills find <英文关键词>`(设置环境变量 DISABLE_TELEMETRY=1)。
-   - ClawHub：打开 https://clawhub.ai 搜索，或运行 `npx -y clawhub search <关键词>`。
+   - skills.sh：运行 `npx -y skills@1.9.0 find <英文关键词>`(固定版本，防止被替换成恶意新版)(设置环境变量 DISABLE_TELEMETRY=1)。
+   - ClawHub：打开 https://clawhub.ai 搜索，或运行 `npx -y clawhub@0.27.0 search <关键词>`。
    - 国内 SkillHub：联网搜索"SkillHub <中文关键词> 技能"。
 3. 每个市场取前 5 个结果。
 
@@ -23,5 +23,5 @@ description: "技能市场(中文)：在全球技能市场(skills.sh、ClawHub�
 - 不安装任何用于绕过模型安全限制("破甲"、越狱)的技能。
 
 ## 安装
-用户确认后：`npx -y skills add <owner/repo> --skill <技能名> -g -y`，或把技能文件夹下载到 `~/.agents/skills/<技能名>/`。
+用户确认后：`npx -y skills@1.9.0 add <owner/repo> --skill <技能名> -g -y`，或把技能文件夹下载到 `~/.agents/skills/<技能名>/`。
 安装后把该技能 SKILL.md 的 description 前面补一段中文说明，方便以后识别。告诉用户已安装、怎么用。

@@ -7,7 +7,7 @@ description: "专业软件操作：让助手通过命令行操作 GIMP、Blender
 
 ## 首次使用：安装(需用户同意)
 1. 说明：需要 Python 3.10 以上，以及电脑上已安装对应的软件(如 GIMP、Blender、LibreOffice)。
-2. 安装软件包管理器：`pip install cli-anything-hub`(或 `uv tool install cli-anything-hub`)。
+2. 安装软件包管理器：`pip install cli-anything-hub==0.4.1`(或 `uv tool install cli-anything-hub==0.4.1`；固定版本)。
 3. 用 `cli-hub search <软件名>` 查找对应工具，`cli-hub install <名称>` 安装。
 4. 安装前查看该工具的许可证(CLI-Anything 各子工具许可证标注不完全一致)，非开源许可证的要告诉用户。
 

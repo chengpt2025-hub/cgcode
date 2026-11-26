@@ -8,7 +8,7 @@ description: "全网阅读：读取和搜索 B站、YouTube 字幕、V2EX、雪�
 ## 首次使用：安装(只需一次)
 1. 运行 `agent-reach version`，能输出 JSON 就跳到“使用”。
 2. 没有 uv(`uv --version` 失败)时，先告诉用户“我要安装一个叫 uv 的小工具，用来安装命令行程序，不需要管理员密码”，然后在 Windows 上运行：
-   `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`
+   `winget install --id astral-sh.uv -e`(用 Windows 自带的应用商店渠道安装，不直接执行网上下载的脚本；没有 winget 时请用户到 https://docs.astral.sh/uv/ 按官方说明手动安装)
 3. 安装 Agent-Reach(只从官方 GitHub 地址安装，**不要从 PyPI 安装同名包，那不是本项目**)：
    `uv tool install https://github.com/Panniantong/Agent-Reach/releases/latest/download/agent-reach.zip`
    然后运行 `agent-reach setup`。找不到命令时运行 `uv tool update-shell` 后重开终端。
