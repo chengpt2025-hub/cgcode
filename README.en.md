@@ -24,7 +24,7 @@ cgcode is an **AI assistant that works with any large language model you choose*
 | What it does | Understands your project, writes code, edits files, runs commands, reviews code, manages Git | Chat, web search, documents, spreadsheets and slides, image generation, coding, multi-agent collaboration, scheduled tasks |
 | How you use it | Run it in a terminal | Install with a double-click; full windowed UI |
 | Branch | `main` | `v2` |
-| Status | Acceptance build released | Acceptance build in progress |
+| Status | Acceptance build released | Acceptance build available |
 
 ---
 
