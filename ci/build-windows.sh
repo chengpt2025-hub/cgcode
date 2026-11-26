@@ -72,6 +72,9 @@ mkdir -p "$ROOT/dist"
 find "$W" -maxdepth 8 \( -iname '*.exe' -o -iname '*.zip' -o -iname '*.blockmap' -o -iname 'latest*.yml' \) -newer "$W/node.zip" \
   -not -path '*/node_modules/*' -not -path '*/pnpm-store/*' -not -path "$NODE_DIR/*" -size +1M 2>/dev/null | tee "$W/found.txt" || true
 grep -i 'setup\|installer\|cgcode\|harness' "$W/found.txt" | grep -i '\.exe$' | while read -r f; do cp "$f" "$ROOT/dist/"; done
+# 自动更新清单(stable.yml)与差分块文件，供发布到 cgcode 更新源
+find "$W" -maxdepth 8 \( -iname 'stable*.yml' -o -iname 'latest*.yml' -o -iname 'nightly*.yml' -o -iname '*.exe.blockmap' \) \
+  -not -path '*/node_modules/*' -not -path '*/pnpm-store/*' -newer "$W/node.zip" 2>/dev/null | while read -r f; do cp "$f" "$ROOT/dist/"; done || true
 ls -la "$ROOT/dist"
 if ! ls "$ROOT/dist"/*.exe >/dev/null 2>&1; then echo "没有找到安装程序"; exit 1; fi
 echo "== 完成"
