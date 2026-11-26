@@ -35,7 +35,7 @@ if [ -d "$ROOT/desktop/overlay" ]; then cp -r "$ROOT/desktop/overlay/." "$W/src/
 if [ -f "$ROOT/desktop/apply.sh" ]; then bash "$ROOT/desktop/apply.sh" "$ROOT" "$W/src"; fi
 
 export DSH_TELEMETRY_DISABLED=1
-export DSH_PACKAGING_PRESET=test
+unset DSH_PACKAGING_PRESET || true
 export DSH_DESKTOP_UPDATE_CHANNEL=stable
 export PACKAGE_SIGNING=unsigned
 export PACKAGE_WINDOWS_COMPRESSION_LEVEL=3
