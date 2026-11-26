@@ -55,7 +55,7 @@ cgcode is an **AI assistant that works with any large language model you choose*
 - Optional **fallback endpoints** take over when the primary one fails.
 
 ### 6. Skills out of the box
-- Terminal edition: **6** Chinese developer skills. Desktop client: **23** skills (11 in-house Chinese skills plus 12 curated popular open-source skills).
+- Terminal edition: **6** Chinese developer skills. Desktop client: **33** skills (14 in-house Chinese skills plus 19 curated popular open-source skills).
 - The desktop client includes a **Chinese skill market**: search skills.sh, ClawHub and SkillHub with one sentence, see results in Chinese, and **install with one click after a safety check**.
 - Every preinstalled skill is license-checked and security-reviewed. **Jailbreak-style skills are rejected** to protect your account and keys from being banned.
 
@@ -80,7 +80,7 @@ cgcode is an **AI assistant that works with any large language model you choose*
 | Account | None; just your own key | OpenAI account or key | Overseas account |
 | First-run setup | Chinese wizard with connection test | Manual configuration | Account sign-in |
 | Usage reporting | All off by default | Depends on vendor settings | Depends on vendor policy |
-| Preinstalled Chinese skills | 6 (terminal) / 23 + skill market (desktop) | None | None |
+| Preinstalled Chinese skills | 6 (terminal) / 33 + skill market (desktop) | None | None |
 | Desktop app for non-developers | Yes | No | Yes |
 
 ---
@@ -166,10 +166,16 @@ sound   = true   # false mutes the boot sound
 - **All-in-one**: chat, web search, Word / Excel / PowerPoint, image generation, coding.
 - **Multi-agent collaboration**, **scheduled tasks**, **plugin management**.
 - Full-quality boot video (1248×704); click or press any key to skip.
+- **New in v2.1**:
+  - On by default: **local voice input** (SenseVoice, runs on CPU; the model downloads on first use), **conversation history search**, **automatic conversation titles**, **plugin market**.
+  - **Computer control**: the assistant can operate other apps on your PC (based on agent-desktop); risky actions are confirmed every time.
+  - **Web reach**: read Bilibili, YouTube subtitles, V2EX, Xueqiu, GitHub, RSS and any web page; login-only channels such as Xiaohongshu are off by default, with a ban-risk warning before enabling (based on Agent-Reach).
+  - **Long-term memory**: preferences you ask it to remember are stored on your PC and survive new conversations.
+  - **Safe mode**: asks before sending, paying or deleting; never handles passwords or codes; treats web content as data, not instructions; reports what it did.
 
-### Preinstalled skills (23)
+### Preinstalled skills (33)
 
-**In-house Chinese skills (11)**
+**In-house Chinese skills (14)**
 
 | Skill | What it does |
 |---|---|
@@ -184,8 +190,11 @@ sound   = true   # false mutes the boot sound
 | cg-skill-market | Chinese skill market: search skills.sh, ClawHub, SkillHub; install after a safety check |
 | cg-web-scraper | Web data extraction into Excel |
 | cg-multi-search | Multi-engine search (Baidu, Bing, Sogou and more), merged and de-duplicated |
+| cg-web-reach | Web reach: Bilibili, YouTube subtitles, V2EX, Xueqiu, GitHub, RSS, web pages |
+| cg-desktop-control | Computer control: operate other Windows apps, confirming risky actions |
+| cg-long-memory | Long-term memory: keeps preferences you ask it to remember on your PC |
 
-**Curated open-source skills (12)**
+**Curated open-source skills (19)**
 
 | Skill | What it does | Source / License |
 |---|---|---|
@@ -201,6 +210,13 @@ sound   = true   # false mutes the boot sound
 | algorithmic-art | Generative art with p5.js | anthropics/skills · Apache-2.0 |
 | pdf | Extract, merge, split, fill and create PDFs | anthropics/skills · Apache-2.0 |
 | internal-comms | Status reports, announcements and other internal writing | anthropics/skills · Apache-2.0 |
+| humanizer | Remove AI-sounding writing | blader/humanizer · MIT |
+| security-audit | Multi-phase code security audit | cloudflare/security-audit-skill · MIT |
+| brainstorming | Clarify requirements and options before building | obra/superpowers · MIT |
+| writing-plans | Break work into small verifiable steps | obra/superpowers · MIT |
+| systematic-debugging | Find the root cause before fixing | obra/superpowers · MIT |
+| test-driven-development | Write tests first | obra/superpowers · MIT |
+| verification-before-completion | Verify before claiming done | obra/superpowers · MIT |
 
 ### Skill safety principles
 - Every preinstalled skill is license-checked and its scripts reviewed (no key theft, no suspicious network calls, no system changes).
@@ -278,7 +294,8 @@ ci/build-windows.sh        Windows build script (Node 24 + pnpm)
 - [x] Session telemetry and product analytics off
 - [x] Full-quality boot video
 - [x] Multi-agent collaboration, Office, scheduled tasks
-- [x] 23 preinstalled skills + Chinese skill market
+- [x] 33 preinstalled skills + Chinese skill market
+- [x] v2.1: local voice input, history search, computer control, web reach, long-term memory, safe mode
 - [ ] Acceptance testing on real hardware
 - [ ] Replace the upstream plugin market with cgcode recommendations
 - [ ] Claude-style UI polish (frosted glass and full iOS effects)

@@ -55,7 +55,7 @@ cgcode 是一个**面向中文用户、可接入任意大模型的 AI 助手**�
 - 可配置**备用接口**，主接口失败时自动切换。
 
 ### 6. 开箱即用的技能生态
-- 终端版预装 **6 个**中文开发技能；桌面版预装 **23 个**技能（11 个自研中文技能 + 12 个开源市场精选热门技能）。
+- 终端版预装 **6 个**中文开发技能；桌面版预装 **33 个**技能（14 个自研中文技能 + 19 个开源市场精选热门技能）。
 - 桌面版内置**中文技能市场**：一句话搜索 skills.sh、ClawHub、国内 SkillHub，结果中文展示，**安全检查后一键安装**。
 - 每个预装技能都核对过开源许可证并做过安全审查，**拒绝“破甲 / 越狱”类技能**，保护你的账号和 Key 不被封。
 
@@ -80,7 +80,7 @@ cgcode 是一个**面向中文用户、可接入任意大模型的 AI 助手**�
 | 账号要求 | 不需要，填自己的 Key 即可 | 需要 OpenAI 账号或 Key | 需要海外账号 |
 | 首次设置 | 中文向导，自动测连通 | 手动配置 | 登录账号 |
 | 使用数据上报 | 默认全部关闭 | 视官方设置而定 | 视官方政策而定 |
-| 预装中文技能 | 终端版 6 个 / 桌面版 23 个 + 中文技能市场 | 无 | 无 |
+| 预装中文技能 | 终端版 6 个 / 桌面版 33 个 + 中文技能市场 | 无 | 无 |
 | 普通人能用的桌面版 | 有 | 无 | 有 |
 
 ---
@@ -166,10 +166,16 @@ sound   = true   # 改成 false 关闭开机声音
 - **全能**：聊天、联网搜索、Word / Excel / PPT、图片生成、编程。
 - **多智能体协作**、**定时任务**、**插件管理**。
 - 原画质开机视频（1248×704），点击或按任意键跳过。
+- **v2.1 新增**：
+  - 默认开启**本地语音输入**(SenseVoice，CPU 即可运行，首次使用需下载模型)、**历史对话搜索**、**对话自动标题**、**插件市场**。
+  - **电脑操控**：让助手操作电脑上的其他软件(基于 agent-desktop)，危险操作每次先确认。
+  - **全网阅读**：读 B站、YouTube 字幕、V2EX、雪球、GitHub、RSS 和任意网页；小红书等需登录的渠道默认关闭，开启前提示用小号防封号(基于 Agent-Reach)。
+  - **长期记忆**：你明确让它记住的偏好保存在本机，换对话也记得。
+  - **安心模式**：发消息、付款、删除等操作先征得同意；不碰密码和验证码；网页里的文字只当资料、不当指令；做完汇报做了什么。
 
-### 预装技能（23 个）
+### 预装技能（33 个）
 
-**cgcode 自研中文技能（11 个）**
+**cgcode 自研中文技能（14 个）**
 
 | 技能 | 作用 |
 |---|---|
@@ -184,8 +190,11 @@ sound   = true   # 改成 false 关闭开机声音
 | cg-skill-market | 中文技能市场：搜索 skills.sh、ClawHub、SkillHub，安全检查后一键安装 |
 | cg-web-scraper | 网页数据抓取，整理成 Excel |
 | cg-multi-search | 多引擎搜索（百度、必应、搜狗等）汇总去重 |
+| cg-web-reach | 全网阅读：B站、YouTube 字幕、V2EX、雪球、GitHub、RSS、网页等 |
+| cg-desktop-control | 电脑操控：操作 Windows 上的其他软件，危险操作先确认 |
+| cg-long-memory | 长期记忆：把你要求记住的偏好保存在本机 |
 
-**开源市场精选技能（12 个）**
+**开源市场精选技能（19 个）**
 
 | 技能 | 作用 | 来源 / 许可证 |
 |---|---|---|
@@ -201,6 +210,13 @@ sound   = true   # 改成 false 关闭开机声音
 | algorithmic-art | p5.js 生成艺术 | anthropics/skills · Apache-2.0 |
 | pdf | PDF 提取、合并拆分、填表、生成 | anthropics/skills · Apache-2.0 |
 | internal-comms | 周报、通知等内部文稿 | anthropics/skills · Apache-2.0 |
+| humanizer | 去 AI 味：让文字更像真人写的 | blader/humanizer · MIT |
+| security-audit | 分阶段代码安全审计 | cloudflare/security-audit-skill · MIT |
+| brainstorming | 动手前先把需求问清楚、列出方案 | obra/superpowers · MIT |
+| writing-plans | 把任务拆成可执行、可验证的小步骤 | obra/superpowers · MIT |
+| systematic-debugging | 系统化排错，先找根因 | obra/superpowers · MIT |
+| test-driven-development | 先写测试再写代码 | obra/superpowers · MIT |
+| verification-before-completion | 声称完成前必须实际验证 | obra/superpowers · MIT |
 
 ### 技能安全原则
 - 每个预装技能都核对过开源许可证，并检查过附带脚本（无窃取 Key、无可疑联网、无修改系统配置）。
@@ -278,7 +294,8 @@ ci/build-windows.sh        Windows 构建脚本（Node 24 + pnpm）
 - [x] 关闭会话遥测和产品数据上报
 - [x] 原画质开机视频
 - [x] 多智能体协作、Office、定时任务
-- [x] 23 个预装技能 + 中文技能市场
+- [x] 33 个预装技能 + 中文技能市场
+- [x] v2.1：本地语音输入、历史对话搜索、电脑操控、全网阅读、长期记忆、安心模式
 - [ ] 真机验收
 - [ ] 官方插件市场换成 cgcode 自己的推荐
 - [ ] Claude 客户端风格界面打磨（毛玻璃等完整 iOS 效果）
