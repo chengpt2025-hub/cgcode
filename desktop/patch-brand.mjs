@@ -35,7 +35,8 @@ const CGCODE_WORDMARK = '${WORDMARK}'
 must('packages/client/ui-conversation/src/client/skeleton/EmptyHero.tsx', [[
   /function HeroFish\(\{ hovering \}: \{ hovering: boolean \}\) \{[\s\S]*?\n\}\n/,
   `function HeroFish({ hovering }: { hovering: boolean }) {
-  void hovering
+  // 原鲸鱼游动用到的路径不再使用；引用一次以满足 noUnusedLocals 类型检查
+  void hovering; void [FISH_LOGO_PATH, FISH_LOGO_VIEWBOX, HERO_SWIM_UP_PATH, HERO_SWIM_DOWN_PATH]
   return <img className={css.fish} src={CGCODE_HERO_LOGO} width={34} height={34} alt="" aria-hidden="true" draggable={false} style={{ borderRadius: '22%' }} />
 }
 const CGCODE_HERO_LOGO = '${LOGO}'
