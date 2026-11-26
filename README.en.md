@@ -177,6 +177,9 @@ sound   = true   # false mutes the boot sound
   - **Voice & narration**: text to speech in many dialects and languages, with voice cloning (own or authorized voices only; files labelled "AI合成"), based on VoxCPM2.
   - **Creator studio**: topic, script, storyboard, character voices and subtitles end to end.
   - **Conversation stats bar**: turns, model and tool time, time to first token.
+- **New in official 1.0.0**:
+  - **Auto-update**: checks cgcode's own update feed, so upstream releases never overwrite cgcode.
+  - **iOS-style theme**: iOS-blue primary buttons and larger corner radii, in light and dark modes.
 - **New in v2.3**:
   - **Pro software control**: drive GIMP, Blender, LibreOffice and more through CLI-Anything for batch edits, renders and conversions, without overwriting originals.
   - **Memory plus (optional install)**: claude-mem records what was done and recalls it later; data stays on your PC.
@@ -316,9 +319,11 @@ ci/build-windows.sh        Windows build script (Node 24 + pnpm)
 - [ ] Acceptance testing on real hardware
 - [ ] Replace the upstream plugin market with cgcode recommendations
 - [ ] Claude-style UI polish (frosted glass and full iOS effects)
-- [ ] Dedicated skill-market UI
-- [ ] Code signing and auto-update
-- [ ] Official installer release
+- [x] Plugin "Discover" tab on by default; skill search and one-click install via the skill-market skill
+- [x] Auto-update from cgcode's own feed (GitHub Pages), no longer the upstream servers
+- [x] Official 1.0.0: iOS-blue primary buttons, larger corner radii
+- [ ] Code signing
+- [x] Official 1.0.0 installer (unsigned for now)
 
 ---
 
