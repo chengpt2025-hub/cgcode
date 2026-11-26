@@ -81,3 +81,35 @@ patch(`${process.argv[2]}/apps/desktop/scripts/electron-builder-config.mjs`, [[
   "      { from: fileURLToPath(new URL('../resources/intro.html', import.meta.url)), to: 'intro.html' },\n",
   "      { from: fileURLToPath(new URL('../resources/intro.html', import.meta.url)), to: 'intro.html' },\n      { from: fileURLToPath(new URL('../resources/skills', import.meta.url)), to: 'skills' },\n",
   '打包预装技能']])
+
+// ===== 与已安装的 DeepSeek Harness 彻底隔离(防止两者抢同一套目录、锁和协议) =====
+// 1) 底座的 Electron 用户目录取自包名 @deepseek-ai/dsh-desktop，和原版 DSH 完全相同(%APPDATA%\@deepseek-ai\dsh-desktop)，
+//    导致两者共用单实例锁、设置、日志：DSH 在托盘运行时 cgcode 一启动就退出。
+// 2) 数据目录 ~/.dsh(配置、凭据、会话、插件、桌面锁 ~/.dsh/profiles/desktop/lock)两者共用，会互相覆盖、抢锁。
+// 3) 运行时把 dsh:// 协议注册给自己，会抢走原版 DSH 的链接。
+// 做法：在任何路径被读取之前，把用户目录改到 %APPDATA%\cgcode，把数据目录改到 ~/.cgcode，协议改为 cgcode://。
+patch(`${D}/main.ts`, [
+  ["let focusPrimaryWindow = (): void => {}\n",
+   `// cgcode：与原版 DeepSeek Harness 隔离，必须在读取任何用户目录/数据目录之前执行
+if (app.isPackaged || process.env.CGCODE_ISOLATE === '1') {
+  const cgcodeHome = process.env.CGCODE_HOME?.trim() || join(cgcodeHomedir(), '.cgcode')
+  // 无论系统里是否设置过 DSH_HOME(原版留下的)，cgcode 一律用自己的数据目录；子进程会继承这个值
+  process.env.DSH_HOME = cgcodeHome
+  app.setName('cgcode')
+  app.setPath('userData', join(app.getPath('appData'), 'cgcode'))
+  if (process.platform === 'win32') app.setAppUserModelId('com.cgcode.desktop')
+}
+let focusPrimaryWindow = (): void => {}
+`, '与 DSH 隔离：用户目录、数据目录、任务栏标识'],
+  ["app.setAsDefaultProtocolClient('dsh')", "app.setAsDefaultProtocolClient('cgcode')", '协议改为 cgcode://(不再抢 dsh://)'],
+  ["if (url === 'dsh://open' || url === 'dsh://open/') focusPrimaryWindow()",
+   "if (url === 'cgcode://open' || url === 'cgcode://open/') focusPrimaryWindow()", '协议打开地址'],
+])
+// 兜底：底座各处默认数据目录名 .dsh 改为 .cgcode(即使某个子进程没拿到 DSH_HOME 也不会落到原版目录)
+patch(`${process.argv[2]}/packages/util/home-paths/src/index.ts`, [[
+  "export const DSH_HOME_DIR_NAME = '.dsh'", "export const DSH_HOME_DIR_NAME = '.cgcode'", '默认数据目录名 .cgcode']])
+// 以后的签名版自动更新：下载缓存目录不再和原版共用 @deepseek-aidsh-desktop-updater
+patch(`${process.argv[2]}/apps/desktop/scripts/electron-builder-config.mjs`, [[
+  "[{ provider: 'generic', url: update.publicUrl, channel: update.channel }]",
+  "[{ provider: 'generic', url: update.publicUrl, channel: update.channel, updaterCacheDirName: 'cgcode-updater' }]",
+  '更新缓存目录独立']])
