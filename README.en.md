@@ -55,7 +55,7 @@ cgcode is an **AI assistant that works with any large language model you choose*
 - Optional **fallback endpoints** take over when the primary one fails.
 
 ### 6. Skills out of the box
-- Terminal edition: **6** Chinese developer skills. Desktop client: **36** skills (17 in-house Chinese skills plus 19 curated popular open-source skills).
+- Terminal edition: **6** Chinese developer skills. Desktop client: **38** skills (19 in-house Chinese skills plus 19 curated popular open-source skills).
 - The desktop client includes a **Chinese skill market**: search skills.sh, ClawHub and SkillHub with one sentence, see results in Chinese, and **install with one click after a safety check**.
 - Every preinstalled skill is license-checked and security-reviewed. **Jailbreak-style skills are rejected** to protect your account and keys from being banned.
 
@@ -80,7 +80,7 @@ cgcode is an **AI assistant that works with any large language model you choose*
 | Account | None; just your own key | OpenAI account or key | Overseas account |
 | First-run setup | Chinese wizard with connection test | Manual configuration | Account sign-in |
 | Usage reporting | All off by default | Depends on vendor settings | Depends on vendor policy |
-| Preinstalled Chinese skills | 6 (terminal) / 36 + skill market (desktop) | None | None |
+| Preinstalled Chinese skills | 6 (terminal) / 38 + skill market (desktop) | None | None |
 | Desktop app for non-developers | Yes | No | Yes |
 
 ---
@@ -177,10 +177,14 @@ sound   = true   # false mutes the boot sound
   - **Voice & narration**: text to speech in many dialects and languages, with voice cloning (own or authorized voices only; files labelled "AI合成"), based on VoxCPM2.
   - **Creator studio**: topic, script, storyboard, character voices and subtitles end to end.
   - **Conversation stats bar**: turns, model and tool time, time to first token.
+- **New in v2.3**:
+  - **Pro software control**: drive GIMP, Blender, LibreOffice and more through CLI-Anything for batch edits, renders and conversions, without overwriting originals.
+  - **Memory plus (optional install)**: claude-mem records what was done and recalls it later; data stays on your PC.
+  - Phone remote control needs LAN access and carries security risk, so it moves to after the official release.
 
-### Preinstalled skills (36)
+### Preinstalled skills (38)
 
-**In-house Chinese skills (17)**
+**In-house Chinese skills (19)**
 
 | Skill | What it does |
 |---|---|
@@ -201,6 +205,8 @@ sound   = true   # false mutes the boot sound
 | cg-offline-mode | Offline mode: install Ollama and pick a local model for your GPU |
 | cg-voice-studio | Voice & narration: TTS, dialects, voice cloning (authorized only) |
 | cg-creator-studio | Creator studio: script → storyboard → voices → subtitles |
+| cg-pro-software | Pro software control: GIMP, Blender, LibreOffice and more (CLI-Anything) |
+| cg-memory-plus | Memory plus: optional claude-mem install, data stays local |
 
 **Curated open-source skills (19)**
 
@@ -302,9 +308,11 @@ ci/build-windows.sh        Windows build script (Node 24 + pnpm)
 - [x] Session telemetry and product analytics off
 - [x] Full-quality boot video
 - [x] Multi-agent collaboration, Office, scheduled tasks
-- [x] 36 preinstalled skills + Chinese skill market
+- [x] 38 preinstalled skills + Chinese skill market
 - [x] v2.1: local voice input, history search, computer control, web reach, long-term memory, safe mode
 - [x] v2.2: local offline models, voice & narration, creator studio, stats bar
+- [x] v2.3: pro software control, memory plus (optional)
+- [ ] Phone remote control (after official release)
 - [ ] Acceptance testing on real hardware
 - [ ] Replace the upstream plugin market with cgcode recommendations
 - [ ] Claude-style UI polish (frosted glass and full iOS effects)
