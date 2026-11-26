@@ -22,6 +22,11 @@ sed -i "s/applicationName: 'DeepSeek Harness'/applicationName: 'cgcode'/" "$D/sr
 # 桌面壳界面文案中的产品名
 sed -i "s/'DeepSeek Harness'/'cgcode'/g" "$D/src/locale.ts"
 
+# 2b. 打包脚本、安装器文案、卸载登记里写死的产品名/可执行文件名，统一改为 cgcode
+grep -rlZ "DeepSeek Harness" "$D/scripts" "$D/installer" "$D/src" --include=*.ts --include=*.mjs --include=*.ps1 --include=*.h --include=*.json --include=*.nsh 2>/dev/null \
+  | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
+echo "剩余写死产品名的文件数: $(grep -rl "DeepSeek Harness" "$D/scripts" "$D/installer" "$D/src" --include=*.ts --include=*.mjs --include=*.ps1 --include=*.h --include=*.json --include=*.nsh 2>/dev/null | wc -l)"
+
 # 3. 默认中文：没有手动选语言时优先简体中文
 sed -i 's/for (const language of languages) {/for (const language of ["zh", ...languages]) {/' "$D/src/locale.ts"
 
