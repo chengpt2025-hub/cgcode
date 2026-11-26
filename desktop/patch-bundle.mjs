@@ -12,6 +12,7 @@ function patch(file, pairs) {
 }
 const model = (id, name, ctx, max) => `            - id: ${id}\n              name: ${name}\n              contextWindow: ${ctx}\n              maxTokens: ${max}\n`
 patch(`${src}/packages/bundle/base/cordis.patch.yml`, [
+  ["        mode: !!js process.env.DSH_TELEMETRY_MODE || 'FEEDBACK_ONLY'\n", "        mode: !!js process.env.DSH_TELEMETRY_MODE || 'DISABLED'\n", '关闭会话遥测上传'],
   ['        provider: deepseek-official\n        model: deepseek-flash\n',
    '        provider: sensenova\n        model: sensenova-6.8-flash\n', '默认模型'],
   ["    - id: llm-pi-ai\n      name: '@deepseek-ai/dsh-llm-pi-ai'\n",
