@@ -75,6 +75,7 @@ grep -i 'setup\|installer\|cgcode\|harness' "$W/found.txt" | grep -i '\.exe$' | 
 # 自动更新清单(stable.yml)与差分块文件，供发布到 cgcode 更新源
 find "$W" -maxdepth 8 \( -iname 'stable*.yml' -o -iname 'latest*.yml' -o -iname 'nightly*.yml' -o -iname '*.exe.blockmap' \) \
   -not -path '*/node_modules/*' -not -path '*/pnpm-store/*' -newer "$W/node.zip" 2>/dev/null | while read -r f; do cp "$f" "$ROOT/dist/"; done || true
+node "$ROOT/desktop/make-update-feed.mjs" "$ROOT/dist" || echo "生成更新清单失败(不影响安装包)"
 ls -la "$ROOT/dist"
 if ! ls "$ROOT/dist"/*.exe >/dev/null 2>&1; then echo "没有找到安装程序"; exit 1; fi
 echo "== 完成"
