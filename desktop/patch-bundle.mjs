@@ -22,7 +22,11 @@ patch(`${src}/packages/bundle/base/cordis.patch.yml`, [
    "          qwen:\n            displayName: 通义千问\n            api: openai-completions\n            baseURL: https://dashscope.aliyuncs.com/compatible-mode/v1\n            apiKeyEnv: DASHSCOPE_API_KEY\n            models:\n" +
    model('qwen-plus', '通义千问 Plus', 131072, 8192) + model('qwen-max', '通义千问 Max', 32768, 8192) +
    "          kimi:\n            displayName: Kimi\n            api: openai-completions\n            baseURL: https://api.moonshot.cn/v1\n            apiKeyEnv: MOONSHOT_API_KEY\n            models:\n" +
-   model('moonshot-v1-128k', 'Kimi 128K', 131072, 8192),
+   model('moonshot-v1-128k', 'Kimi 128K', 131072, 8192) +
+   "          ollama:\n            displayName: 本地离线模型(Ollama)\n            api: openai-completions\n            baseURL: http://localhost:11434/v1\n            headers:\n              Authorization: Bearer ollama\n            models:\n" +
+   model("'qwen3.5:4b'", '通义千问 3.5 4B(本地，8GB 显存)', 32768, 8192) +
+   model("'deepseek-r1:8b'", 'DeepSeek R1 8B(本地，8GB 显存)', 65536, 8192) +
+   model("'deepseek-r1:14b'", 'DeepSeek R1 14B(本地，16GB 显存)', 65536, 8192),
    '多模型预置'],
 ])
 patch(`${src}/packages/bundle/web-app/cordis.patch.yml`, [
