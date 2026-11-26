@@ -2,7 +2,10 @@
  "repos": {
   "vercel-labs/skills": "57217cf86ba38148a57af9e90d14a4c049558330",
   "vercel-labs/agent-browser": "a67ba089fec5fbfec07346aebad11666463d9799",
-  "anthropics/skills": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba"
+  "anthropics/skills": "e4bb5d960d87126ff3b3a8af1a104b7db67560ba",
+  "blader/humanizer": "a32f24407364c74c812b43c15926d638bee1e072",
+  "cloudflare/security-audit-skill": "c1c8a8c1471069fb0e188eeaff69b8e8db6564a8",
+  "obra/superpowers": "22f0b463e7a5e579904dd6211a520321035526f7"
  },
  "skills": {
   "find-skills": {
@@ -64,6 +67,41 @@
    "repo": "anthropics/skills",
    "path": "skills/internal-comms",
    "zh": "内部沟通文稿：周报、通知、项目进展、事故通报等公司内部文案(Apache-2.0，来自 anthropics/skills)"
+  },
+  "humanizer": {
+   "repo": "blader/humanizer",
+   "path": ".",
+   "zh": "去 AI 味：把读起来像 AI 写的文字改得更像真人写的，不改变原意；中文同样适用，配合 cg-writing 使用(MIT，来自 blader/humanizer)"
+  },
+  "security-audit": {
+   "repo": "cloudflare/security-audit-skill",
+   "path": "skills/security-audit",
+   "zh": "代码安全审计：分阶段排查代码中的安全漏洞，结论经独立复核(MIT，来自 cloudflare/security-audit-skill)"
+  },
+  "brainstorming": {
+   "repo": "obra/superpowers",
+   "path": "skills/brainstorming",
+   "zh": "头脑风暴：动手前先把需求问清楚、列出方案再决定(MIT，来自 obra/superpowers)"
+  },
+  "writing-plans": {
+   "repo": "obra/superpowers",
+   "path": "skills/writing-plans",
+   "zh": "写实施计划：把任务拆成可执行、可验证的小步骤(MIT，来自 obra/superpowers)"
+  },
+  "systematic-debugging": {
+   "repo": "obra/superpowers",
+   "path": "skills/systematic-debugging",
+   "zh": "系统化排错：先找根因再修，不靠猜(MIT，来自 obra/superpowers)"
+  },
+  "test-driven-development": {
+   "repo": "obra/superpowers",
+   "path": "skills/test-driven-development",
+   "zh": "测试驱动开发：先写测试再写代码(MIT，来自 obra/superpowers)"
+  },
+  "verification-before-completion": {
+   "repo": "obra/superpowers",
+   "path": "skills/verification-before-completion",
+   "zh": "完成前核验：声称完成之前必须实际运行验证(MIT，来自 obra/superpowers)"
   }
  }
 }

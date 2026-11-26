@@ -19,7 +19,7 @@ for (const [name, s] of Object.entries(m.skills)) {
   const from = join(work, s.repo.replace('/', '_'), s.path)
   const to = join(dest, name)
   rmSync(to, { recursive: true, force: true })
-  cpSync(from, to, { recursive: true })
+  cpSync(from, to, { recursive: true, filter: p => !/[\\/]\.git([\\/]|$)/.test(p) })
   const f = join(to, 'SKILL.md')
   let t = readFileSync(f, 'utf8')
   t = t.replace(/^description:\s*(.*)$/m, (_, d) => {
