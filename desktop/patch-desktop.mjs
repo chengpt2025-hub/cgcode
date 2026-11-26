@@ -27,10 +27,17 @@ patch(`${process.argv[2]}/packages/client/ui-brand-official/src/client/index.ts`
 // 开机视频：主窗口出现前播放 cgcode 开机视频(原画质)，点击/按键跳过，最长 15 秒
 patch(`${D}/main.ts`, [[
   "async function main(): Promise<void> {\n",
-  `async function playCgcodeIntro(): Promise<void> {
+  `function keepCgcodeAliveDuringIntro(): void {}
+
+async function playCgcodeIntro(): Promise<void> {
   if (!app.isPackaged || process.env.CGCODE_NO_INTRO !== undefined) return
   const page = join(process.resourcesPath, 'intro.html')
   try { await access(page) } catch { return }
+  // 修复闪退：开机视频窗口此时是唯一的窗口。Electron 在没有任何 window-all-closed 监听时，
+  // 会在所有窗口关闭后自动退出程序；而底座自己的监听要等主流程后面才注册。
+  // 所以视频一结束(窗口关闭)程序就开始退出，约 3 秒后整个进程消失。这里先挂一个空监听，
+  // 阻止这个默认退出；之后底座注册的监听照常生效(关掉主窗口仍会正常退出)。
+  app.on('window-all-closed', keepCgcodeAliveDuringIntro)
   await new Promise<void>((resolve) => {
     const intro = new BrowserWindow({
       width: 1248, height: 704, frame: false, resizable: false, center: true, show: false,
