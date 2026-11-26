@@ -18,6 +18,10 @@ curl -fsSL "https://nodejs.org/dist/latest-v24.x/$NV" -o "$W/node.zip"
 unzip -q "$W/node.zip" -d "$W"
 NODE_DIR="$W/${NV%.zip}"
 export PATH="$NODE_DIR:$PATH"
+# 底座打包脚本按 Windows 自带 tar(bsdtar)写法调用 tar；Git Bash 的 GNU tar 会把 "C:" 当远程主机。
+mkdir -p "$W/bin"; cp /c/Windows/System32/tar.exe "$W/bin/tar.exe"
+export PATH="$W/bin:$PATH"
+tar --version | head -1
 node -v
 npm i -g pnpm@11.28.5 >/dev/null
 pnpm -v
@@ -46,7 +50,8 @@ echo "== 安装依赖"
 pnpm install --frozen-lockfile
 
 echo "== 打包 Windows 安装程序(未签名)"
-pnpm run package:desktop:win:x64:unsigned
+pnpm run package:desktop:win:x64:unsigned > "$W/package.log" 2>&1 || { tail -c 30000 "$W/package.log"; exit 1; }
+tail -c 8000 "$W/package.log"
 
 echo "== 收集产物"
 mkdir -p "$ROOT/dist"
