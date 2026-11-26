@@ -32,4 +32,8 @@ sed -i 's/for (const language of languages) {/for (const language of ["zh", ...l
 
 grep -c "productName: 'cgcode'" "$B"
 grep -c '\["zh", ...languages\]' "$D/src/locale.ts"
+# 4. 模型与遥测：默认日日新、预置通义/Kimi(DeepSeek 由底座自带路由提供)、关闭桌面产品遥测
+node "$ROOT/desktop/patch-bundle.mjs" "$SRC"
+# 5. 模型插件文案里的产品名
+grep -rlZ "DeepSeek Harness" "$SRC/packages" --include=*.json 2>/dev/null | grep -z "/locale/" | xargs -0 -r sed -i 's/DeepSeek Harness/cgcode/g'
 echo "apply: 品牌与中文默认已套用"
